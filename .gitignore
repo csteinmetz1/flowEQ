@@ -1,0 +1,16 @@
+# Visual Studo Code
+.vscode
+
+# Datasets and models
+data/
+models/
+
+# Python virtual environment
+env/
+
+# Mac OS
+.DS_Store
+
+# MATLAB
+testbench*.m
+
