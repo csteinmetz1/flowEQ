@@ -98,11 +98,11 @@ classdef myPlugin < audioPlugin & matlab.System
     properties(Access = private)
 
         % Lowshelf filter coefs
-        lowShelfa, lowShelfb;
+        lowShelfb, lowShelfa;
         lowShelfState = zeros(2);
 
         % First band filter coefs
-        firstBandCoefs;
+        firstBandb, firstBanda;
         firstBandState = zeros(2);
 
         % Second band filter coefs
@@ -114,7 +114,7 @@ classdef myPlugin < audioPlugin & matlab.System
         thirdBandState = zeros(2);
 
         % Highself filter coefs
-        highShelfCoefs;
+        highShelfb, highShelfa;
         highShelfState = zeros(2);
 
         % Paramter update flags 
@@ -133,20 +133,22 @@ classdef myPlugin < audioPlugin & matlab.System
         function y = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
             if plugin.updateLowShelf
+                fs = getSampleRate(plugin);
                 if strcmp(plugin.eqMode, 'Auto')
-                    [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(...
-                                                           getSampleRate(plugin),...
-                                                           plugin.lowShelfFreq,...
-                                                           0.71,...
-                                                           plugin.lowShelfGain);
+                    [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(fs, plugin.lowShelfFreq, 0.71, 10.^(plugin.lowShelfGain/20));
                 else
-                    [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(...
-                                                           getSampleRate(plugin),...
-                                                           plugin.lowShelfFreq,...
-                                                           0.71,...
-                                                           plugin.lowShelfGain);
+                    [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(fs, plugin.lowShelfFreq, 0.71, 10.^(plugin.lowShelfGain/20));
                 end
                 setUpdateLowShelf(plugin, false);
+            end
+            if plugin.updateHighShelf
+                fs = getSampleRate(plugin);
+                if strcmp(plugin.eqMode, 'Auto')
+                    [plugin.highShelfb, plugin.highShelfa] = plugin.makeHighShelf(fs, plugin.highShelfFreq, 0.71, 10.^(plugin.highShelfGain/20));
+                else
+                    [plugin.highShelfb, plugin.highShelfa] = plugin.makeHighShelf(fs, plugin.highShelfFreq, 0.71, 10.^(plugin.highShelfGain/20));
+                end
+                setUpdateHighShelf(plugin, false);
             end
             % -------------------- Audio Processing -----------------------
             % Apply input gain
@@ -157,7 +159,7 @@ classdef myPlugin < audioPlugin & matlab.System
             %[u, plugin.firstBandState]  = filter(plugin.firstBandCoefs(1),  plugin.firstBandCoefs(2),  u, plugin.firstBandState)
             %[u, plugin.secondBandState] = filter(plugin.secondBandCoefs(1), plugin.secondBandCoefs(2), u, plugin.secondBandState)
             %[u, plugin.thirdBandState]  = filter(plugin.thirdBandCoefs(1),  plugin.thirdBandCoefs(2),  u, plugin.thirdBandState) 
-            %[u, plugin.highShelfState]  = filter(plugin.highShelfCoefs(1),  plugin.highShelfCoefs(2),  u, plugin.lowShelfState)
+            [u, plugin.highShelfState]  = filter(plugin.highShelfb,  plugin.highShelfa,  u, plugin.highShelfState);
 
             % Apply output gain
             y = 10.^(plugin.outputGain/20)*u;
@@ -165,11 +167,10 @@ classdef myPlugin < audioPlugin & matlab.System
 
         function setupImpl(plugin, ~)    
             % Initialize filters
-            [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(...
-                                                   getSampleRate(plugin),...
-                                                   plugin.lowShelfFreq,...
-                                                   0.71,...
-                                                   plugin.lowShelfGain);
+            fs = getSampleRate(plugin);
+            [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(fs, plugin.lowShelfFreq, 0.71, 10.^(plugin.lowShelfGain/20));
+            [plugin.highShelfb, plugin.highShelfa] = plugin.makeHighShelf(fs, plugin.highShelfFreq, 0.71, 10.^(plugin.highShelfGain/20));
+
         end
 
         function resetImpl(plugin)
@@ -189,13 +190,16 @@ classdef myPlugin < audioPlugin & matlab.System
         function setUpdateLowShelf(plugin, flag)
             plugin.updateLowShelf = flag;
         end
+        function setUpdateHighShelf(plugin, flag)
+            plugin.updateHighShelf = flag;
+        end
         %--------------------- Coefficient Cooking ------------------------
         % These functions are based on the JUCE DSP library in an
         % effort to match the implementation in the SAFE EQ plugin
         %------------------------------------------------------------------
         function [b, a] = makeLowShelf(plugin, fs, cutOffFrequency, Q, gainFactor)
             % initial values
-            A = max(0.0, gainFactor);
+            A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
             aplus1 = A + 1;
             omega = (2 * pi * max(cutOffFrequency, 2.0)) / fs;
@@ -212,12 +216,12 @@ classdef myPlugin < audioPlugin & matlab.System
             a2 = aplus1 + aminus1TimesCoso - beta_;
 
             % output coefs (not sure to normalize by a0 or not?)
-            b = [b0/a0, b1/a0, b2/a0]
-            a = [a0/a0, a1/a0, a2/a0]
+            b = [b0, b1, b2];
+            a = [a0, a1, a2];
         end
-        function [b, a] = makeHighShelf(fs, cutOffFrequency, Q, gainFactor)
+        function [b, a] = makeHighShelf(plugin, fs, cutOffFrequency, Q, gainFactor)
             % initial values
-            A = max(0.0, gainFactor);
+            A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
             aplus1 = A + 1;
             omega = (2 * pi * max(cutOffFrequency, 2.0)) / fs;
@@ -229,17 +233,17 @@ classdef myPlugin < audioPlugin & matlab.System
             b0 = A * (aplus1 + aminus1TimesCoso + beta_);
             b1 = A * -2 * (aminus1 + aplus1 * coso);
             b2 = A * (aplus1 + aminus1TimesCoso - beta_);
-            a0 = aplus1 + aminus1TimesCoso + beta_;
+            a0 = aplus1 - aminus1TimesCoso + beta_;
             a1 = 2 * (aminus1 - aplus1 * coso);
             a2 = aplus1 - aminus1TimesCoso - beta_;
 
             % output coefs
-            b = [b0, b1, b2];
-            a = [a0, a1, a2];
+            b = [b0, b1, b2]
+            a = [a0, a1, a2]
         end
         function [b, a] = makePeakFilter(fs, frequency, Q, gainFactor)
             % initial values
-            A = max(0.0, gainFactor)
+            A = max(0.0, sqrt(gainFactor))
             omega = (2 * pi * max(frequency, 2.0)) / fs;
             alpha_ = sin(omega) / (Q * 2);
             c2 = -2 * cos(omega);
@@ -263,6 +267,7 @@ classdef myPlugin < audioPlugin & matlab.System
     % setter and getter methods
     %----------------------------------------------------------------------
     methods 
+        %---------------------------- Decoder -----------------------------
         function set.latentDim(plugin, val)
             plugin.latentDim = val;
             setUpdateEqState(plugin, true);
@@ -291,6 +296,7 @@ classdef myPlugin < audioPlugin & matlab.System
         function val = get.zDim(plugin)
             val = plugin.zDim;
         end
+        %---------------------------- Equalizer ----------------------------
         function set.lowShelfGain(plugin, val)
             plugin.lowShelfGain = val;
             setUpdateLowShelf(plugin, true);
@@ -304,6 +310,20 @@ classdef myPlugin < audioPlugin & matlab.System
         end
         function val = get.lowShelfFreq(plugin)
             val = plugin.lowShelfFreq;
+        end
+        function set.highShelfGain(plugin, val)
+            plugin.highShelfGain = val;
+            setUpdateHighShelf(plugin, true);
+        end
+        function val = get.highShelfGain(plugin)
+            val = plugin.highShelfGain;
+        end
+        function set.highShelfFreq(plugin, val)
+            plugin.highShelfFreq = val;
+            setUpdateHighShelf(plugin, true);
+        end
+        function val = get.highShelfFreq(plugin)
+            val = plugin.highShelfFreq;
         end
     end  
 end
