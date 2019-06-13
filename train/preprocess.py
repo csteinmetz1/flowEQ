@@ -1,7 +1,9 @@
 import pandas as pd
 
-# read in original dataset and add in proper columns
+# read in original dataset 
 df = pd.read_csv('../data/safe/SAFEEqualiserUserData.csv', header=None)
+
+# and add in proper columns
 df.columns = ["entry", "descriptor", "ip_address", "?", "?",
 			  "low_shelf_gain", "low_shelf_freq", 
 			  "first_band_gain", "first_band_freq", "first_band_q",
@@ -61,3 +63,4 @@ norm_params = pd.concat([norm_gains['low_shelf_gain'],   norm_freq1,
 
 # save normalized data to file
 norm_params.to_csv("../data/safe/normalized_eq_params.csv", sep=",")
+
