@@ -76,53 +76,6 @@ def plot_results(models,
     plt.savefig(filename)
     plt.show()
 
-def denormalize_eq_params(x):
-
-    min_gain  =   -12.00
-    max_gain  =    12.00
-    min_q     =     0.71
-    max_q     =    10.00
-    min_freq1 =   150.00
-    max_freq1 =  1000.00
-    min_freq2 =   560.00
-    max_freq2 =  3900.00
-    min_freq3 =  1000.00
-    max_freq3 =  4700.00
-    min_freq4 =  3300.00
-    max_freq4 = 10000.00
-    min_freq5 =  8200.00
-    max_freq5 = 20000.00
-
-    n_gain  = (max_gain - min_gain) + min_gain
-    n_q     = (max_q -  min_q) + min_q
-    n_freq1 = (max_freq1 - min_freq1) + min_freq1
-    n_freq2 = (max_freq2 - min_freq2) + min_freq2
-    n_freq3 = (max_freq3 - min_freq3) + min_freq3
-    n_freq4 = (max_freq4 - min_freq4) + min_freq4
-    n_freq5 = (max_freq5 - min_freq5) - min_freq5
-
-    y = x
-
-    y[0] = x[0] * n_gain
-    y[1] = x[1] * n_freq1
-    y[2] = x[2] * n_gain
-    y[3] = x[3] * n_freq2
-    y[4] = x[4] * n_q
-    y[5] = x[5] * n_gain
-    y[6] = x[6] * n_freq3
-    y[7] = x[7] * n_q	
-    y[8] = x[8] * n_gain
-    y[9] = x[9] * n_freq4
-    y[10] = x[10] * n_q	
-    y[11] = x[11] * n_gain
-    y[12] = x[2] * n_freq5
-
-    return y
- 
-def print_eq_params(x):
-    print(f"lowshelf gain: {x[0]:0.2f}")
-    print(f"lowshelf freq: {x[1]:0.2f}")
-
 def sampling(args):
 
     z_mean, z_log_var = args
@@ -138,7 +91,6 @@ eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_
 # split into train and test sets
 x_train = eq_params.reset_index().values[0:1600,1:14]
 x_test = eq_params.reset_index().values[1600:,1:14]
-
 
 # MNIST dataset
 #(x_train, y_train), (x_test, y_test) = mnist.load_data()
