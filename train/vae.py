@@ -3,17 +3,19 @@ from __future__ import division
 from __future__ import print_function
 
 from keras.layers import Lambda, Input, Dense
+from keras import optimizers
 from keras.models import Model
 from keras.datasets import mnist
-from keras.losses import mse, binary_crossentropy
+from keras import losses
 from keras.utils import plot_model
 from keras import backend as K
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 import os
+
+from utils import *
 
 def plot_results(models,
                  data,
@@ -32,49 +34,39 @@ def plot_results(models,
     x_test, y_test = data
     os.makedirs(model_name, exist_ok=True)
 
-    filename = os.path.join(model_name, "vae_mean.png")
+    #filename = os.path.join(model_name, "vae_mean.png")
     # display a 2D plot of the digit classes in the latent space
-    z_mean, _, _ = encoder.predict(x_test,
-                                   batch_size=batch_size)
-    plt.figure(figsize=(12, 10))
-    plt.scatter(z_mean[:, 0], z_mean[:, 1], c=y_test)
-    plt.colorbar()
-    plt.xlabel("z[0]")
-    plt.ylabel("z[1]")
-    plt.savefig(filename)
-    plt.show()
+    #z_mean, _, _ = encoder.predict(x_test, batch_size=batch_size)
+    #plt.figure(figsize=(12, 10))
+    #plt.scatter(z_mean[:, 0], z_mean[:, 1])
+    #plt.colorbar()
+    #plt.xlabel("z[0]")
+    #plt.ylabel("z[1]")
+    #plt.savefig(filename)
+    #plt.show()
 
     filename = os.path.join(model_name, "digits_over_latent.png")
-    # display a 30x30 2D manifold of digits
-    n = 30
-    digit_size = 28
-    figure = np.zeros((digit_size * n, digit_size * n))
+    # display a 30x30 2D manifold of eq curves
+    n = 15
+
     # linearly spaced coordinates corresponding to the 2D plot
     # of digit classes in the latent space
-    grid_x = np.linspace(-4, 4, n)
-    grid_y = np.linspace(-4, 4, n)[::-1]
+    grid_x = np.linspace(-10, 10, n)
+    grid_y = np.linspace(-10, 10, n)[::-1]
+
+    idx = 1
 
     for i, yi in enumerate(grid_y):
         for j, xi in enumerate(grid_x):
             z_sample = np.array([[xi, yi]])
             x_decoded = decoder.predict(z_sample)
-            digit = x_decoded[0].reshape(digit_size, digit_size)
-            figure[i * digit_size: (i + 1) * digit_size,
-                   j * digit_size: (j + 1) * digit_size] = digit
+            x = x_decoded[0].reshape(13, 1)
+            ax = plt.subplot(n, n, idx)
+            subplot_tf(x, 44100, ax)
+            idx += 1
 
-    plt.figure(figsize=(10, 10))
-    start_range = digit_size // 2
-    end_range = n * digit_size + start_range + 1
-    pixel_range = np.arange(start_range, end_range, digit_size)
-    sample_range_x = np.round(grid_x, 1)
-    sample_range_y = np.round(grid_y, 1)
-    plt.xticks(pixel_range, sample_range_x)
-    plt.yticks(pixel_range, sample_range_y)
-    plt.xlabel("z[0]")
-    plt.ylabel("z[1]")
-    plt.imshow(figure, cmap='Greys_r')
-    plt.savefig(filename)
     plt.show()
+
 
 def sampling(args):
 
@@ -89,8 +81,10 @@ def sampling(args):
 eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_col=0)
 
 # split into train and test sets
-x_train = eq_params.reset_index().values[0:1600,1:14]
-x_test = eq_params.reset_index().values[1600:,1:14]
+x_train = eq_params.drop('descriptor', axis=1).reset_index().values[1:1600,1:14]
+y_train = eq_params['descriptor'].reset_index().values[0:1,1:14]
+x_test = eq_params.drop('descriptor', axis=1).reset_index().values[1600:,1:14]
+y_test = eq_params['descriptor'].reset_index().values[1600:,1:14]
 
 # MNIST dataset
 #(x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -105,12 +99,12 @@ x_test = eq_params.reset_index().values[1600:,1:14]
 original_dim = x_train.shape[1]
 input_shape = (original_dim,)
 latent_dim = 2
-batch_size = 128
-epochs = 10
+batch_size = 512
+epochs = 1000
 
 # build encoder
 inputs = Input(shape=input_shape, name='encoder_input')
-x = Dense(64, activation='relu')(inputs)
+x = Dense(1024, activation='relu')(inputs)
 z_mean = Dense(latent_dim, name='z_mean')(x)
 z_log_var = Dense(latent_dim, name='z_log_var')(x)
 
@@ -124,7 +118,7 @@ plot_model(encoder, to_file='vae_mlp_encoder.png', show_shapes=True)
 
 # build decoder
 latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
-x = Dense(64, activation='relu')(latent_inputs)
+x = Dense(1024, activation='relu')(latent_inputs)
 outputs = Dense(original_dim, activation='sigmoid')(x)
 
 # make decoder into model
@@ -137,7 +131,7 @@ outputs = decoder(encoder(inputs)[2])
 vae = Model(inputs, outputs, name='vae_mlp')
 
 # use mse for reconstruction loss
-reconstruction_loss = mse(inputs, outputs)
+reconstruction_loss = losses.mean_squared_error(inputs, outputs)
 reconstruction_loss *= original_dim # what does this do?
 
 # compute kl divergence for other loss term
@@ -147,7 +141,8 @@ kl_loss *= -0.5
 
 vae_loss = K.mean(reconstruction_loss + kl_loss)
 vae.add_loss(vae_loss)
-vae.compile(optimizer='adam')
+optimizer = optimizers.Adam(lr=0.01)
+vae.compile(optimizer)
 vae.summary()
 plot_model(vae, to_file='vae_mlp.png', show_shapes=True)
 
@@ -155,19 +150,24 @@ plot_model(vae, to_file='vae_mlp.png', show_shapes=True)
 vae.fit(x_train,
         epochs=epochs, 
         batch_size=batch_size,
-        validation_data=(x_test, None))
+        validation_data=(x_test, None),
+        shuffle=True)
 
-for eq_params in x_test:
-    x = np.array(eq_params)
-    print_eq_params(x)
-    #z = encoder.predict(x.reshape(1,13,))
-    #x_hat = decoder.predict(z[2])
+#x = np.array([6.09, 114.77, 3.65, 192.036, 0.23, -12, 915.82, 1.32, -2.13, 444.72, 0.71, -12, 2857.14])
+x = x_train[0]
+print(x)
+#y = normalize_params(x)
+#print(y)
+y_hat = vae.predict(np.array(x).reshape(1,13))
+print(y_hat)
+x = denormalize_params(y_hat[0])
 
-#models = (encoder, decoder)
-#data = (x_test, y_test)
 
-#plot_results(models,
-#             data,
-#             batch_size=batch_size,
-#             model_name="vae_mlp")
+models = (encoder, decoder)
+data = (x_test, y_test)
+
+plot_results(models,
+             data,
+             batch_size=batch_size,
+             model_name="vae_mlp")
     
