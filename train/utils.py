@@ -31,8 +31,11 @@ def normalize_param_by_type(x, param_type):
 
 def normalize_params(x):
 
+	# convert to ndarray
+	x = np.array(x)
+
 	# create new array y same size as x
-	y = x
+	y = np.zeros(x.shape)
 
 	# low shelf
 	y[0]  = (x[0]  - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
@@ -57,8 +60,11 @@ def normalize_params(x):
 
 def denormalize_params(y):
 	
+	# convert to ndarray
+	y = np.array(y)
+
 	# create new array y same size as x
-	x = y
+	x = np.zeros(y.shape)
 
 	# low shelf
 	x[0]  = (y[0]  * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
