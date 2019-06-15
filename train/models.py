@@ -107,8 +107,8 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     # construct loss function
     def vae_loss(y_true, y_pred):
         recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
-        return K.sum(recon + kl_loss)
+        kl_loss = 0.002 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        return K.mean(recon + kl_loss)
 
     autoencoder.compile(optimizer=tf.train.AdamOptimizer(0.001), loss=vae_loss)
     autoencoder.summary()
