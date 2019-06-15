@@ -5,7 +5,8 @@
 data/
 models/
 
-# Python virtual environment
+# Python
+__pycache__
 env/
 
 # Mac OS
