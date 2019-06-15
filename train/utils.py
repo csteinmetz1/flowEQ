@@ -239,6 +239,38 @@ def plot_tf(x, fs=44100, to_file=""):
         plt.show()
     plt.close()
 
+def compare_tf(a, b, fs=44100, to_file=""):
+
+    plt.figure(figsize=(8,4))
+    ax = plt.gca()
+
+    # convert eq params to second order sections
+    sosA = params2sos(denormalize_params(a), fs)
+    sosB = params2sos(denormalize_params(b), fs)
+
+    # calcuate filter responses
+    fA, hA = sg.sosfreqz(sosA, worN=2048, fs=fs)	
+    fB, hB = sg.sosfreqz(sosB, worN=2048, fs=fs)	
+
+    # plot the magnitude respose
+    plt.title('Digital filter frequency response')
+    original, = plt.semilogx(fA, 20 * np.log10(abs(hA)), 'r--')
+    reconstructed, = plt.semilogx(fB, 20 * np.log10(abs(hB)), 'b')
+    plt.legend(handles=[original, reconstructed], labels=['Original', 'Reconstructed'])
+    plt.ylabel('Amplitude [dB]', color='b')
+    plt.xlabel('Frequency [Hz]')
+    locmaj = ticker.LogLocator(base=10,numticks=12) 
+    ax.xaxis.set_major_locator(locmaj)
+    plt.xlim([22.0, 20000.0])
+    plt.ylim([-20, 20])
+    plt.grid()	# note: make this look prettier
+    
+    if to_file:
+        plt.savefig(to_file)
+    else:
+        plt.show()
+    plt.close()
+
 def plot_examples(data, filename):
 
     plt.figure(figsize=(10,10))
