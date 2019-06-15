@@ -24,19 +24,27 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-autoencoder, encoder, decoder = build_single_layer_autoencoder(10, x_train.shape[1])
+autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
 
 # train the model
 autoencoder.fit(x_train, x_train, 
 		  		shuffle=True,
 		  		validation_data=(x_test,x_test),
 		  		batch_size=8, 
-		  		epochs=100)
+		  		epochs=200)
 
 
-z = np.array(np.zeros([1, 10]))
-y = decoder.predict(z)
+x = np.array([6.09, 114.77, 3.65, 192.036, 0.23, -12, 915.82, 1.32, -2.13, 444.72, 0.71, -12, 2857.14])
+x = normalize_params(x).reshape(1,13)
+z = encoder.predict(x)
+y = decoder.predict(z[2])
+x_hat = denormalize_params(y[0])
+
+print(x[0])
 print(y[0])
-x = denormalize_params(y[0])
-print(x)
-plot_tf(x)
+
+compare_tf(x[0], y[0])
+
+models = (encoder, decoder)
+
+plot_manifold(models, n=15, data=None, batch_size=8)
