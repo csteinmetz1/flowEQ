@@ -293,8 +293,10 @@ def plot_manifold(models, n=15, data=None, batch_size=128):
         batch_size (int): prediction batch size
     """
 
-    encoder, decoder = models
-    x_test, y_test = data
+    if models:
+        encoder, decoder = models
+    if data:
+        x_test, y_test = data
 
     # linearly spaced coordinates corresponding to the 2D plot
     grid_x = np.linspace(-4, 4, n)
