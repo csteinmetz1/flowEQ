@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy import signal as sg
 import matplotlib.pyplot as plt
+from nltk.stem import PorterStemmer
+
+ps = PorterStemmer()
 
 param_max = {
 	"gain"  :    12.0,
@@ -161,14 +164,13 @@ def make_peaking(g, fc, Q, fs=44100):
     
 	return b, a
 
-def plot_tf(x, fs=44100, to_file=""):
-
+def params2sos(x, fs):
 	# generate filter coefficients from eq params
-	b1, a1 = make_lowshelf(x[0], x[1], 0.71)
-	b2, a2 = make_peaking(x[2], x[3], x[4])
-	b3, a3 = make_peaking(x[5], x[6], x[7])
-	b4, a4 = make_peaking(x[8], x[9], x[10])
-	b5, a5 = make_highself(x[11], x[12], 0.71)
+	b1, a1 = make_lowshelf(x[0],  x[1],  0.71,  fs=fs)
+	b2, a2 = make_peaking (x[2],  x[3],  x[4],  fs=fs)
+	b3, a3 = make_peaking (x[5],  x[6],  x[7],  fs=fs)
+	b4, a4 = make_peaking (x[8],  x[9],  x[10], fs=fs)
+	b5, a5 = make_highself(x[11], x[12], 0.71,  fs=fs)
 
 	# stuff coefficents into second order sections structure
 	sos = [[np.concatenate([b1, a1])],
@@ -177,7 +179,30 @@ def plot_tf(x, fs=44100, to_file=""):
 		   [np.concatenate([b4, a4])],
 		   [np.concatenate([b5, a5])]]
 
-	sos = np.array(sos).reshape(5,6)
+	return np.array(sos).reshape(5,6)
+
+def subplot_tf(y, fs, ax):
+
+	x = denormalize_params(y)
+
+	# convert eq params to second order sections
+	sos = params2sos(x, fs)
+
+	# calcuate filter response
+	f, h = sg.sosfreqz(sos, worN=2048, fs=fs)	
+
+	# plot the magnitude respose
+	ax.semilogx(f, 20 * np.log10(abs(h)), 'b')
+	ax.set_xlim([22.0, 20000.0])
+	ax.set_ylim([-20, 20])
+	ax.get_xaxis().set_visible(False)
+	ax.get_yaxis().set_visible(False)
+	ax.grid()	# note: make this look prettier
+
+def plot_tf(x, fs=44100, to_file=""):
+
+	# convert eq params to second order sections
+	sos = params2sos(x, fs)
 
 	# calcuate filter response
 	f, h = sg.sosfreqz(sos, worN=2048, fs=fs)	
@@ -198,3 +223,6 @@ def plot_tf(x, fs=44100, to_file=""):
 		plt.show()
 	plt.close()
 
+def stem(word):
+	word = word.lower().strip().split()[0]
+	return word
