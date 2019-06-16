@@ -46,7 +46,7 @@ autoencoder.fit(x_train, x_train,
 		  		shuffle=True,
 		  		validation_data=(x_test,x_test),
 		  		batch_size=8, 
-		  		epochs=2000,
+		  		epochs=1400,
 				callbacks=[tensorboard_callback])
 
 autoencoder.save_weights('../models/vae.h5', save_format='h5')
@@ -60,6 +60,10 @@ x_hat = denormalize_params(y[0])
 print(x[0])
 print(y[0])
 
+d = {'warm': 0, 'bright': 1}
+labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
+
 compare_tf(x[0], y[0])
 models = (encoder, decoder)
-plot_manifold(models, n=15, data=None, batch_size=8)
+data = (x_test, labels)
+plot_2d_manifold(models, dim=15, data=data)
