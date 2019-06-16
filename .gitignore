@@ -4,6 +4,8 @@
 # Datasets and models
 data/
 models/
+train/logs/
+train/plots/
 
 # Python
 __pycache__
