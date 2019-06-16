@@ -318,7 +318,7 @@ def plot_tf(x, fs=44100, to_file=""):
         plt.show()
     plt.close()
 
-def compare_tf(a, b, fs=44100, to_file=""):
+def compare_tf(a, b, fs=44100, to_file=None):
 
     plt.figure(figsize=(8,4))
     ax = plt.gca()
@@ -346,8 +346,8 @@ def compare_tf(a, b, fs=44100, to_file=""):
     
     if to_file:
         plt.savefig(to_file)
-    else:
-        plt.show()
+
+    plt.show()
     plt.close()
 
 def plot_examples(data, filename):
@@ -382,16 +382,15 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
     """
 
     if models:
-        
         # unpack (trained) models
         encoder, decoder = models
 
         # linearly spaced coordinates corresponding to the 2D plot
-        grid_x = np.linspace(-2, 2, dim)
-        grid_y = np.linspace(-2, 2, dim)[::-1]
+        grid_x = np.linspace(-4, 4, dim)
+        grid_y = np.linspace(-4, 4, dim)[::-1]
 
         # create new square figure
-        plt.figure(figsize=(10, 10))
+        fig2 = plt.figure(figsize=(10, 10))
 
         # iterate over points in 2D space, plot tf at each point
         for i, yi in enumerate(grid_y):
@@ -404,23 +403,24 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
                 subplot_tf(x, 44100, ax)
         plt.show()
 
-    if data:
+        if to_file:
+            fig2.savefig(to_file + "1.png")
 
+    if data:
         # unpack samples and associated category labels
         samples, labels = data
 
-        z_mean, _, _ = encoder.predict(samples)
+        z_mean, _, _ = encoder.predict(samples, batch_size=8)
 
-        plt.figure(figsize=(12, 10))
+        fig2 = plt.figure(figsize=(12, 10))
         plt.scatter(z_mean[:, 0], z_mean[:, 1], c=labels)
         plt.colorbar()
         plt.xlabel("z[0]")
         plt.ylabel("z[1]")
-        #plt.savefig(filename)
         plt.show()
-   
-    if to_file:
-        plt.savefig(to_file)
+    
+        if to_file:
+            fig2.savefig(to_file + "2.png")
 
     plt.close()
 

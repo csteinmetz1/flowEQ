@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+import sys
 from datetime import datetime
 from packaging import version
 
@@ -35,7 +37,7 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
+autoencoder, encoder, decoder = build_multiple_layer_variational_autoencoder(2, x_train.shape[1])
 
 # tensorboard logging setup
 logdir="logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -46,7 +48,7 @@ autoencoder.fit(x_train, x_train,
 		  		shuffle=True,
 		  		validation_data=(x_test,x_test),
 		  		batch_size=8, 
-		  		epochs=1400,
+		  		epochs=1500,
 				callbacks=[tensorboard_callback])
 
 autoencoder.save_weights('../models/vae.h5', save_format='h5')
@@ -62,8 +64,7 @@ print(y[0])
 
 d = {'warm': 0, 'bright': 1}
 labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
-
-compare_tf(x[0], y[0])
+compare_tf(x[0], y[0], to_file=os.path.join(logdir,'reconstruction'))
 models = (encoder, decoder)
 data = (x_test, labels)
-plot_2d_manifold(models, dim=15, data=data)
+plot_2d_manifold(models, dim=15, data=data, to_file=os.path.join(logdir,'2d_manifold'))
