@@ -82,7 +82,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
-    x = layers.Dense(64, activation='relu')(inputs)
+    x = layers.Dense(1024, activation='relu')(inputs)
     mu = layers.Dense(latent_dim, activation='linear')(x)
     log_sigma = layers.Dense(latent_dim, activation='linear')(x)
 
@@ -91,7 +91,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # decoder structure (takes latent vector and produces new output)
     latent_inputs = layers.Input(shape=(latent_dim,))
-    x = layers.Dense(64, activation='relu')(latent_inputs)
+    x = layers.Dense(1024, activation='relu')(latent_inputs)
     outputs = layers.Dense(input_shape, activation='sigmoid')(x)
 
     # make encoder and decoder models for use later 
@@ -107,10 +107,61 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     # construct loss function
     def vae_loss(y_true, y_pred):
         recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = 0.002 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        kl_loss = 0.001 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
         return K.mean(recon + kl_loss)
 
-    autoencoder.compile(optimizer=tf.train.AdamOptimizer(0.001), loss=vae_loss)
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
+    autoencoder.summary()
+
+    return autoencoder, encoder, decoder
+
+def build_multiple_layer_variational_autoencoder(latent_dim, input_shape):
+    """
+    Construct a simple single layer variational autoencoder.
+
+     1 -> 
+     2 -> 
+     3 -> 
+    ...
+    10 -> 
+
+    """
+    
+    # encoder structure (generates mean and log of stddev)
+    inputs = layers.Input(shape=(input_shape,))
+    x = layers.Dense(128, activation='relu')(inputs)
+    x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dense(32, activation='relu')(x)
+    mu = layers.Dense(latent_dim, activation='linear')(x)
+    log_sigma = layers.Dense(latent_dim, activation='linear')(x)
+
+    # sampling layer implements reparameterization trick
+    z = layers.Lambda(sample, output_shape=(latent_dim,))([mu, log_sigma])
+
+    # decoder structure (takes latent vector and produces new output)
+    latent_inputs = layers.Input(shape=(latent_dim,))
+    x = layers.Dense(32, activation='relu')(latent_inputs)
+    x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dense(128, activation='relu')(x)
+    outputs = layers.Dense(input_shape, activation='sigmoid')(x)
+
+    # make encoder and decoder models for use later 
+    encoder = tf.keras.Model(inputs, [mu, log_sigma, z], name='encoder')
+    decoder = tf.keras.Model(latent_inputs, outputs, name='decoder')
+    encoder.summary()
+    decoder.summary()
+
+    # stick these together to make autoencoder
+    outputs = decoder(encoder(inputs)[2])
+    autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
+
+    # construct loss function
+    def vae_loss(y_true, y_pred):
+        recon = losses.mean_absolute_error(inputs, outputs)
+        kl_loss = 0.01 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        return K.mean(recon + kl_loss)
+
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
     autoencoder.summary()
 
     return autoencoder, encoder, decoder
