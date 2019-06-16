@@ -320,7 +320,7 @@ def plot_tf(x, fs=44100, to_file=""):
 
 def compare_tf(a, b, fs=44100, to_file=None):
 
-    plt.figure(figsize=(8,4))
+    fig = plt.figure(figsize=(8,4))
     ax = plt.gca()
 
     # convert eq params to second order sections
@@ -347,8 +347,7 @@ def compare_tf(a, b, fs=44100, to_file=None):
     if to_file:
         plt.savefig(to_file)
 
-    plt.show()
-    plt.close()
+    return fig
 
 def plot_examples(data, filename):
 
@@ -401,7 +400,6 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
                 x = x_decoded[0].reshape(13, 1)
                 ax = plt.subplot(dim, dim, subplot_idx)
                 subplot_tf(x, 44100, ax)
-        plt.show()
 
         if to_file:
             fig2.savefig(to_file + "1.png")
@@ -417,12 +415,11 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
         plt.colorbar()
         plt.xlabel("z[0]")
         plt.ylabel("z[1]")
-        plt.show()
     
         if to_file:
             fig2.savefig(to_file + "2.png")
 
-    plt.close()
+    return fig1, fig2
 
 def stem(word):
     word = word.lower().strip().split()[0]
