@@ -89,7 +89,26 @@ def denormalize_params(y):
     return x
 
 def make_lowshelf(g, fc, Q, fs=44100):
+    """Generate filter coefficients for 2nd order Lowshelf filter.
 
+    This function follows the code from the JUCE DSP library 
+    which can be found in `juce_IIRFilter.cpp`. 
+    
+    The design equations are based upon those found in the Cookbook 
+    formulae for audio equalizer biquad filter coefficients
+    by Robert Bristow-Johnson. 
+
+    https://www.w3.org/2011/audio/audio-eq-cookbook.html
+
+    Args:
+        g  (float): Gain factor in dB.
+        fc (float): Cutoff frequency in Hz.
+        Q  (float): Q factor.
+        fs (float): Sampling frequency in Hz.
+
+    Returns:
+        tuple: (b, a) filter coefficients 
+    """
     # convert gain from dB to linear
     g = np.power(10,(g/20))
 
@@ -117,7 +136,26 @@ def make_lowshelf(g, fc, Q, fs=44100):
     return b, a
 
 def make_highself(g, fc, Q, fs=44100):
+    """Generate filter coefficients for 2nd order Highshelf filter.
 
+    This function follows the code from the JUCE DSP library 
+    which can be found in `juce_IIRFilter.cpp`. 
+    
+    The design equations are based upon those found in the Cookbook 
+    formulae for audio equalizer biquad filter coefficients
+    by Robert Bristow-Johnson. 
+
+    https://www.w3.org/2011/audio/audio-eq-cookbook.html
+
+    Args:
+        g  (float): Gain factor in dB.
+        fc (float): Cutoff frequency in Hz.
+        Q  (float): Q factor.
+        fs (float): Sampling frequency in Hz.
+
+    Returns:
+        tuple: (b, a) filter coefficients 
+    """
     # convert gain from dB to linear
     g = np.power(10,(g/20))
 
@@ -145,7 +183,26 @@ def make_highself(g, fc, Q, fs=44100):
     return b, a
 
 def make_peaking(g, fc, Q, fs=44100):
+    """Generate filter coefficients for 2nd order Peaking EQ.
 
+    This function follows the code from the JUCE DSP library 
+    which can be found in `juce_IIRFilter.cpp`. 
+    
+    The design equations are based upon those found in the Cookbook 
+    formulae for audio equalizer biquad filter coefficients
+    by Robert Bristow-Johnson. 
+
+    https://www.w3.org/2011/audio/audio-eq-cookbook.html
+
+    Args:
+        g  (float): Gain factor in dB.
+        fc (float): Cutoff frequency in Hz.
+        Q  (float): Q factor.
+        fs (float): Sampling frequency in Hz.
+
+    Returns:
+        tuple: (b, a) filter coefficients 
+    """
     # convert gain from dB to linear
     g = np.power(10,(g/20))
 
@@ -172,6 +229,28 @@ def make_peaking(g, fc, Q, fs=44100):
     return b, a
 
 def params2sos(x, fs):
+    """Convert 5 band EQ paramaters to 2nd order sections.
+
+    Takes a vector with shape (13,) of denormalized EQ parameters
+    and calculates filter coefficients for each of the 5 filters.
+    These coefficients (2nd order sections) are then stored into a
+    single (5,6) matrix. This matrix can be fed to scipy.signal.sosfreqz()
+    in order to determine the frequency response of the cascase of
+    all five biquad filters.
+
+    Args:
+        x  (float): Gain factor in dB.       
+        fs (float): Sampling frequency in Hz.
+
+    Returns:
+        ndarray: filter coefficients for 5 band EQ stored in (5,6) matrix.
+
+        [[b1_0, b1_1, b1_2, a1_0, a1_1, a1_2],  # lowshelf coefficients
+         [b2_0, b2_1, b2_2, a2_0, a2_1, a2_2],  # first band coefficients
+         [b3_0, b3_1, b3_2, a3_0, a3_1, a3_2],  # second band coefficients
+         [b4_0, b4_1, b4_2, a4_0, a4_1, a4_2],  # third band coefficients
+         [b5_0, b5_1, b5_2, a5_0, a5_1, a5_2]]  # highshelf coefficients
+    """
     # generate filter coefficients from eq params
     b1, a1 = make_lowshelf(x[0],  x[1],  0.71,  fs=fs)
     b2, a2 = make_peaking (x[2],  x[3],  x[4],  fs=fs)
@@ -283,36 +362,67 @@ def plot_examples(data, filename):
     plt.tight_layout()
     plt.savefig(filename)
 
-def plot_manifold(models, n=15, data=None, batch_size=128):
-    """Display a 2D manifold of EQ transfer functions
+def plot_2d_manifold(models, dim=15, data=None, to_file=None):
+    """Display a 2D manifold of EQ transfer functions.
 
-    # Arguments
-        models (tuple): encoder and decoder models
-        n (int) : dimensions of the manifold
-        data (tuple): test data and label
-        batch_size (int): prediction batch size
+    Creates an array of subplots that is dim x dim in size. 
+    There are two modes of operation. If no data is passed (default),
+    then linearly spaced 2D coordinates are passed to the decoder
+    to generate the plot. If data is passed, then these data points
+    are passed through the encoder and their latent representations
+    are plotted in 2D space. Including labels (categorical encoding) will 
+    allow for proper color coding of plotted samples.
+
+    Args:
+        models  (tuple) : Encoder and decoder models objects.
+        dim     (int)   : Dimensions of the manifold (dim x dim).
+        data    (tuple) : Sample and label arrays.
+        to_file (str)   : Optional string of filepath for saving figure.
+                          Just show the figure otherwise.
     """
 
     if models:
+        
+        # unpack (trained) models
         encoder, decoder = models
+
+        # linearly spaced coordinates corresponding to the 2D plot
+        grid_x = np.linspace(-2, 2, dim)
+        grid_y = np.linspace(-2, 2, dim)[::-1]
+
+        # create new square figure
+        plt.figure(figsize=(10, 10))
+
+        # iterate over points in 2D space, plot tf at each point
+        for i, yi in enumerate(grid_y):
+            for j, xi in enumerate(grid_x):
+                subplot_idx = (i*dim) + j + 1
+                z_sample = np.array([[xi, yi]])
+                x_decoded = decoder.predict(z_sample)
+                x = x_decoded[0].reshape(13, 1)
+                ax = plt.subplot(dim, dim, subplot_idx)
+                subplot_tf(x, 44100, ax)
+        plt.show()
+
     if data:
-        x_test, y_test = data
 
-    # linearly spaced coordinates corresponding to the 2D plot
-    grid_x = np.linspace(-4, 4, n)
-    grid_y = np.linspace(-4, 4, n)[::-1]
+        # unpack samples and associated category labels
+        samples, labels = data
 
-    idx = 1
-    for i, yi in enumerate(grid_y):
-        for j, xi in enumerate(grid_x):
-            z_sample = np.array([[xi, yi]])
-            x_decoded = decoder.predict(z_sample)
-            x = x_decoded[0].reshape(13, 1)
-            ax = plt.subplot(n, n, idx)
-            subplot_tf(x, 44100, ax)
-            idx += 1
+        z_mean, _, _ = encoder.predict(samples)
 
-    plt.show()
+        plt.figure(figsize=(12, 10))
+        plt.scatter(z_mean[:, 0], z_mean[:, 1], c=labels)
+        plt.colorbar()
+        plt.xlabel("z[0]")
+        plt.ylabel("z[1]")
+        #plt.savefig(filename)
+        plt.show()
+   
+    if to_file:
+        plt.savefig(to_file)
+
+    plt.close()
 
 def stem(word):
     word = word.lower().strip().split()[0]
