@@ -1,3 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from datetime import datetime
+from packaging import version
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -5,6 +12,10 @@ from tensorflow.keras import layers
 
 from models import *
 from utils import *
+
+print("TensorFlow version: ", tf.__version__)
+assert version.parse(tf.__version__).release[0] >= 2, \
+    "This notebook requires TensorFlow 2.0 or above."
 
 # load normalized data from file
 eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_col=0)
@@ -26,13 +37,19 @@ print("Testing labels : ", y_test.shape)
 
 autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
 
+# tensorboard logging setup
+logdir="logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+
 # train the model
 autoencoder.fit(x_train, x_train, 
 		  		shuffle=True,
 		  		validation_data=(x_test,x_test),
 		  		batch_size=8, 
-		  		epochs=200)
+		  		epochs=2000,
+				callbacks=[tensorboard_callback])
 
+autoencoder.save_weights('../models/vae.h5', save_format='h5')
 
 x = np.array([6.09, 114.77, 3.65, 192.036, 0.23, -12, 915.82, 1.32, -2.13, 444.72, 0.71, -12, 2857.14])
 x = normalize_params(x).reshape(1,13)
@@ -44,7 +61,5 @@ print(x[0])
 print(y[0])
 
 compare_tf(x[0], y[0])
-
 models = (encoder, decoder)
-
 plot_manifold(models, n=15, data=None, batch_size=8)
