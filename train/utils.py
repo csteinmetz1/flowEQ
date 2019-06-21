@@ -88,6 +88,15 @@ def denormalize_params(y):
 
     return x
 
+def sort_params(x):
+
+    y = np.zeros(x.shape)
+
+    sorted_freqs = np.sort(x[3], x[6], x[9])
+
+    y[3] = sorted_freqs[0]
+
+
 def make_lowshelf(g, fc, Q, fs=44100):
     """Generate filter coefficients for 2nd order Lowshelf filter.
 
@@ -318,6 +327,18 @@ def plot_tf(x, fs=44100, to_file=""):
         plt.show()
     plt.close()
 
+def mse_tf(a, b, fs=44100):
+    
+    # convert eq params to second order sections
+    sosA = params2sos(denormalize_params(a), fs)
+    sosB = params2sos(denormalize_params(b), fs)
+
+    # calcuate filter responses
+    fA, hA = sg.sosfreqz(sosA, worN=512, fs=fs)	
+    fB, hB = sg.sosfreqz(sosB, worN=512, fs=fs)	
+
+    return np.mean((np.abs(hA) - np.abs(hB))**2)
+
 def compare_tf(a, b, fs=44100, to_file=None):
 
     fig = plt.figure(figsize=(8,4))
@@ -331,8 +352,10 @@ def compare_tf(a, b, fs=44100, to_file=None):
     fA, hA = sg.sosfreqz(sosA, worN=2048, fs=fs)	
     fB, hB = sg.sosfreqz(sosB, worN=2048, fs=fs)	
 
+    mse = np.mean(np.abs(hA) - np.abs(hB)**2)
+
     # plot the magnitude respose
-    plt.title('Digital filter frequency response')
+    plt.title(f"MSE: {mse:0.5f}")
     original, = plt.semilogx(fA, 20 * np.log10(abs(hA)), 'r--')
     reconstructed, = plt.semilogx(fB, 20 * np.log10(abs(hB)), 'b')
     plt.legend(handles=[original, reconstructed], labels=['Original', 'Reconstructed'])
@@ -389,7 +412,7 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
         grid_y = np.linspace(-4, 4, dim)[::-1]
 
         # create new square figure
-        fig2 = plt.figure(figsize=(10, 10))
+        fig1 = plt.figure(figsize=(10, 10))
 
         # iterate over points in 2D space, plot tf at each point
         for i, yi in enumerate(grid_y):
@@ -402,7 +425,9 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
                 subplot_tf(x, 44100, ax)
 
         if to_file:
-            fig2.savefig(to_file + "1.png")
+            fig1.savefig(to_file + "1.png")
+
+        plt.close()
 
     if data:
         # unpack samples and associated category labels
@@ -419,7 +444,7 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
         if to_file:
             fig2.savefig(to_file + "2.png")
 
-    return fig1, fig2
+        plt.close()
 
 def stem(word):
     word = word.lower().strip().split()[0]

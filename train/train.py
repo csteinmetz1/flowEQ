@@ -48,6 +48,8 @@ def make_plots(epoch, logs):
         y = decoder.predict(z)
         x_hat = denormalize_params(y[0])
       
+        mse_tf(x[0], y[0])
+
         compare = compare_tf(x[0], y[0], to_file=os.path.join(logdir,f"reconstruction_{epoch+1}")) 
         buf = io.BytesIO()
         compare.savefig(buf, format='png')
@@ -77,6 +79,6 @@ autoencoder.fit(x_train, x_train,
                 batch_size=8, 
                 epochs=1500,
                 callbacks=[tensorboard_callback, plotting_callback],
-                verbose=True)
+                verbose=False)
 
 autoencoder.save_weights('../models/vae.h5', save_format='h5')
