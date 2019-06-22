@@ -1,18 +1,9 @@
 classdef flowEQ < audioPlugin & matlab.System
     %----------------------------------------------------------------------
-    % constructor
-    %----------------------------------------------------------------------
-    methods
-        function plugin = flowEQ
-            % load network weights here
-        end
-    end
-    %----------------------------------------------------------------------
     % public properties
     %----------------------------------------------------------------------
     properties(Nontunable)
-        sample = ones(1, 13, 1);
-        net; % define the network object   
+        net;
     end     
     
     properties 
@@ -65,7 +56,7 @@ classdef flowEQ < audioPlugin & matlab.System
         PluginInterface = audioPluginInterface(...
             'InputChannels',2,...
             'OutputChannels',2,...
-            'PluginName','myPlugin',...
+            'PluginName','flowEQ',...
             ... % Model Parameters
             audioPluginParameter('latentDim',      'DisplayName','Latent Dimension',  'Label','',   'Mapping',{'enum','1','2','3'}),...
             audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -1, 1}),...
@@ -133,13 +124,17 @@ classdef flowEQ < audioPlugin & matlab.System
     methods(Access = protected)
         function y = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
-            if plugin.updateAutoEqState
+            if plugin.updateAutoEqState && plugin.autoMode
                 % pass latent vector through decoder
-
+                x_hat = plugin.net.predict([plugin.xDim plugin.yDim]);
                 % denormalize 1x13 param vector
-
+                x_hat = plugin.net.denormalize_params(x_hat)
                 % update autoEqState to match new params
-
+                %plugin.storeEqState(x_hat);
+                % request coefficient update
+                plugin.fullFilterReset();
+                
+                setUpdateAutoEqState(plugin, false);
             end
             if plugin.updateLowShelf
                 fs = getSampleRate(plugin);
@@ -217,6 +212,8 @@ classdef flowEQ < audioPlugin & matlab.System
                 [plugin.thirdBandb,  plugin.thirdBanda]  = plugin.makePeakFilter(fs, plugin.thirdBandFreq, plugin.thirdBandQ, 10.^(plugin.thirdBandGain/20));
                 [plugin.highShelfb,  plugin.highShelfa]  = plugin.makeHighShelf (fs, plugin.highShelfFreq, 0.71, 10.^(plugin.highShelfGain/20));
             end
+            
+            plugin.net = Decoder('decoder.mat');
         end
 
         function resetImpl(plugin)
@@ -231,6 +228,21 @@ classdef flowEQ < audioPlugin & matlab.System
     % private methods
     %----------------------------------------------------------------------
     methods (Access = private)
+        function storeEqState(plugin, x_hat)
+            plugin.lowShelfGain   = x_hat(1);
+            plugin.lowShelfFreq   = x_hat(2);
+            plugin.firstBandGain  = x_hat(3);
+            plugin.firstBandFreq  = x_hat(4);
+            plugin.firstBandQ     = x_hat(5);
+            plugin.secondBandGain = x_hat(6);
+            plugin.secondBandFreq = x_hat(7);
+            plugin.secondBandQ    = x_hat(8);
+            plugin.thirdBandGain  = x_hat(9);
+            plugin.thirdBandFreq  = x_hat(10);
+            plugin.thirdBandQ     = x_hat(11);
+            plugin.highShelfGain  = x_hat(12);
+            plugin.highShelfFreq  = x_hat(13);
+        end
         %------------------- Full Filter Reset ----------------------------
         function fullFilterReset(plugin)
             % Reset intial conditions for filters

@@ -6,11 +6,11 @@ classdef Decoder
     methods
         
         function obj = Decoder(filename)
-            obj.W1 = h5read(filename,'/decoder/dense_3/kernel:0').';
-            obj.b1 = h5read(filename,'/decoder/dense_3/bias:0').';
-            obj.W2 = h5read(filename,'/decoder/dense_4/kernel:0').';
-            obj.b2 = h5read(filename,'/decoder/dense_4/bias:0').';
-            
+            weights = coder.load(filename);
+            obj.W1 = weights.W1;
+            obj.b1 = weights.b1;
+            obj.W2 = weights.W2;
+            obj.b2 = weights.b2;
         end
         
         function y_hat = predict(obj, z)
@@ -29,10 +29,12 @@ classdef Decoder
             x_a = 1 ./ (1 + exp(-x));
         end
         
-        function normalize_params(x)
+        function x_norm = normalize_params(~, x)
+            x_norm = x;
         end
         
-        function denormalize_params(x)
+        function x_denorm = denormalize_params(~, x)
+           x_denorm = x;
         end
 
    end
