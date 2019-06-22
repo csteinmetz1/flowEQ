@@ -16,4 +16,6 @@ env/
 
 # MATLAB
 testbench*.m
+*.m~
+*.vst
 
