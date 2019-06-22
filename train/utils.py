@@ -7,86 +7,23 @@ from nltk.stem import PorterStemmer
 
 ps = PorterStemmer()
 
-param_max = {
-    "gain"  :    12.0,
-    "Q"	    :    10.0,
-    "freq1" :  1000.0,
-    "freq2" :  3900.0,
-    "freq3" :  4700.0,
-    "freq4" : 10000.0,
-    "freq5" : 20000.0
-}
-
-param_min = {
-    "gain"  :   -12.0,
-    "Q"	    :     0.1,
-    "freq1" :    22.0,
-    "freq2" :    82.0,
-    "freq3" :   180.0,
-    "freq4" :   220.0,
-    "freq5" :   580.0
-}
-
-def normalize_param_by_type(x, param_type):
-    return (x - param_max[param_type]) / (param_max[param_type] - param_min[param_type])
+# constants for parameter normalization
+xmax = np.array([ 12.0, 1000.0,  12.0, 3900.0, 10.0,  12.0, 4700.0, 10.0,  12.0, 10000.0, 10.0,  12.0, 20000.0]);
+xmin = np.array([-12.0,   22.0, -12.0,   82.0,  0.1, -12.0,  180.0,  0.1, -12.0,   220.0,  0.1, -12.0,   580.0]);
 
 def normalize_params(x):
 
     # convert to ndarray
     x = np.array(x)
 
-    # create new array y same size as x
-    y = np.zeros(x.shape)
+    return (x - xmin) / (xmax - xmin);
 
-    # low shelf
-    y[0]  = (x[0]  - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
-    y[1]  = (x[1]  - param_min['freq1']) / (param_max['freq1'] - param_min['freq1'])
-    # first band
-    y[2]  = (x[2]  - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
-    y[3]  = (x[3]  - param_min['freq2']) / (param_max['freq2'] - param_min['freq2'])
-    y[4]  = (x[4]  - param_min['Q'])     / (param_max['Q'] - param_min['Q'])
-    # second band
-    y[5]  = (x[5]  - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
-    y[6]  = (x[6]  - param_min['freq3']) / (param_max['freq3'] - param_min['freq3'])
-    y[7]  = (x[7]  - param_min['Q'])     / (param_max['Q'] - param_min['Q'])
-    # second band
-    y[8]  = (x[8]  - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
-    y[9]  = (x[9]  - param_min['freq4']) / (param_max['freq4'] - param_min['freq4'])
-    y[10] = (x[10] - param_min['Q'])     / (param_max['Q'] - param_min['Q'])
-    # high shelf
-    y[11] = (x[11] - param_min['gain'])  / (param_max['gain'] - param_min['gain'])
-    y[12] = (x[12] - param_min['freq5']) / (param_max['freq5'] - param_min['freq5'])
-
-    return y
-
-def denormalize_params(y):
+def denormalize_params(x):
     
     # convert to ndarray
-    y = np.array(y)
+    x = np.array(x)
 
-    # create new array y same size as x
-    x = np.zeros(y.shape)
-
-    # low shelf
-    x[0]  = (y[0]  * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
-    x[1]  = (y[1]  * (param_max['freq1'] - param_min['freq1'])) + param_min['freq1']
-    # first band
-    x[2]  = (y[2]  * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
-    x[3]  = (y[3]  * (param_max['freq2'] - param_min['freq2'])) + param_min['freq2']
-    x[4]  = (y[4]  * (param_max['Q']     - param_min['Q'])) + param_min['Q']
-    # second band
-    x[5]  = (y[5]  * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
-    x[6]  = (y[6]  * (param_max['freq3'] - param_min['freq3'])) + param_min['freq3']
-    x[7]  = (y[7]  * (param_max['Q']     - param_min['Q'])) + param_min['Q']
-    # second band
-    x[8]  = (y[8]  * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
-    x[9]  = (y[9]  * (param_max['freq4'] - param_min['freq4'])) + param_min['freq4']
-    x[10] = (y[10] * (param_max['Q']     - param_min['Q'])) + param_min['Q']
-    # high shelf
-    x[11] = (y[11] * (param_max['gain']  - param_min['gain'])) + param_min['gain'] 
-    x[12] = (y[12] * (param_max['freq5'] - param_min['freq5'])) + param_min['freq5']
-
-    return x
+    return (x * (xmax - xmin)) + xmin;
 
 def sort_params(x):
 
