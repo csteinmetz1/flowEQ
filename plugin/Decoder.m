@@ -7,13 +7,16 @@ classdef Decoder
     methods
         
         function obj = Decoder(filename)
+            % parameter vectors for norm/denormalization
+            obj.xmax = [ 12.0 1000.0  12.0 3900.0 10.0  12.0 4700.0 10.0  12.0 10000.0 10.0  12.0 20000.0];
+            obj.xmin = [-12.0   22.0 -12.0   82.0  0.1 -12.0  180.0  0.1 -12.0   220.0  0.1 -12.0   580.0];
+
+            % load trained model weights from .mat file
             weights = coder.load(filename);
             obj.W1 = weights.W1;
             obj.b1 = weights.b1;
             obj.W2 = weights.W2;
             obj.b2 = weights.b2;
-            obj.xmax = weights.xmax;
-            obj.xmin = weights.xmin; 
         end
         
         function y_hat = predict(obj, z)

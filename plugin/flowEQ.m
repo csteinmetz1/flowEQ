@@ -3,7 +3,9 @@ classdef flowEQ < audioPlugin & matlab.System
     % public properties
     %----------------------------------------------------------------------
     properties(Nontunable)
-        net;
+        net1d;  % one dimensional latent space model
+        net2d;  % two dimensional latent space model
+        net3d;  % three dimensional latent space model
     end     
     
     properties 
@@ -14,14 +16,14 @@ classdef flowEQ < audioPlugin & matlab.System
         xDim           =      0.0;
         yDim           =      0.0;
         zDim           =      0.0;
-        decoderMode    =   'free';
+        decoderMode    = 'manual';
         latentDim      =      '1';
         firstTerm      =   'warm';
         interpolate    =      0.0;
         secondTerm     = 'bright';
         strength       =      1.0;
-        % Parametric EQ Parameters (manual)
         autoMode        =    true;
+        % Parametric EQ Parameters (manual)
         lowShelfGain   =     0.00;
         lowShelfFreq   =   150.00;
         firstBandGain  =     0.00;
@@ -62,15 +64,15 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -4, 4}),...
             audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -4, 4}),...
             audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -4, 4}),...
-            audioPluginParameter('decoderMode',    'DisplayName','Decoder Mode',      'Label','',   'Mapping',{'enum', 'free', 'semantic'}),...    
+            audioPluginParameter('decoderMode',    'DisplayName','Decoder Mode',      'Label','',   'Mapping',{'enum', 'manual', 'semantic'}),...    
             audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
             audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', -1, 1}),...
             audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
             audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin', 0, 1}),...
+            audioPluginParameter('autoMode',       'DisplayName','Automatic',         'Label','',   'Mapping',{'enum', 'Manual', 'Auto'}),...
             ... % Parametric EQ Parameters 
             audioPluginParameter('inputGain',      'DisplayName','Input Gain',        'Label','dB', 'Mapping',{'pow', 1/3, -80, 12}),...
             audioPluginParameter('outputGain',     'DisplayName','Output Gain',       'Label','dB', 'Mapping',{'pow', 1/3, -80, 12}),...
-            audioPluginParameter('autoMode',       'DisplayName','Automatic',         'Label','',   'Mapping',{'enum', 'Manual', 'Auto'}),...
             audioPluginParameter('lowShelfGain',   'DisplayName','Lowshelf Gain',     'Label','dB', 'Mapping',{'lin', -12, 12}),...
             audioPluginParameter('lowShelfFreq',   'DisplayName','Lowshelf Freq.',    'Label','Hz', 'Mapping',{'lin', 22, 1000}),...
             audioPluginParameter('firstBandGain',  'DisplayName','First Band Gain',   'Label','dB', 'Mapping',{'lin', -12, 12}),...
@@ -126,14 +128,20 @@ classdef flowEQ < audioPlugin & matlab.System
             % -------------------- Parameter Updates ----------------------
             if plugin.updateAutoEqState && plugin.autoMode
                 % pass latent vector through decoder
-                x_hat = plugin.net.predict([plugin.xDim plugin.yDim]);
+                if     strcmp(plugin.latentDim,'1')
+                    x_hat = plugin.net1d.predict([plugin.xDim]);
+                elseif strcmp(plugin.latentDim,'2')
+                    x_hat = plugin.net2d.predict([plugin.xDim plugin.yDim]);
+                else   
+                    x_hat = plugin.net3d.predict([plugin.xDim plugin.yDim plugin.zDim]);
+                end
                 % denormalize 1x13 param vector
-                x_hat = plugin.net.denormalize(x_hat);
+                x_hat = plugin.net1d.denormalize(x_hat);
                 % update autoEqState to match new params
                 plugin.storeEqState(x_hat);
-                % request coefficient update
+                % request coefficient update for all filters
                 plugin.fullFilterReset();
-                
+                % turn the parameter update flag off since we are finished
                 setUpdateAutoEqState(plugin, false);
             end
             if plugin.updateLowShelf
@@ -213,7 +221,10 @@ classdef flowEQ < audioPlugin & matlab.System
                 [plugin.highShelfb,  plugin.highShelfa]  = plugin.makeHighShelf (fs, plugin.highShelfFreq, 0.71, 10.^(plugin.highShelfGain/20));
             end
             
-            plugin.net = Decoder('decoder.mat');
+            % construct decoder objects
+            plugin.net1d = Decoder('decoder1d.mat');
+            plugin.net2d = Decoder('decoder2d.mat');
+            plugin.net3d = Decoder('decoder3d.mat');
         end
 
         function resetImpl(plugin)
@@ -358,7 +369,6 @@ classdef flowEQ < audioPlugin & matlab.System
         function set.latentDim(plugin, val)
             plugin.latentDim = val;
             setUpdateAutoEqState(plugin, true);
-            fullFilterReset(plugin);
         end
         function val = get.latentDim(plugin)
             val = plugin.latentDim;
@@ -366,7 +376,6 @@ classdef flowEQ < audioPlugin & matlab.System
         function set.xDim(plugin, val)
             plugin.xDim = val;
             setUpdateAutoEqState(plugin, true);
-            fullFilterReset(plugin);
         end
         function val = get.xDim(plugin)
             val = plugin.xDim;
@@ -374,7 +383,6 @@ classdef flowEQ < audioPlugin & matlab.System
         function set.yDim(plugin, val)
             plugin.yDim = val;
             setUpdateAutoEqState(plugin, true);
-            fullFilterReset(plugin);
         end
         function val = get.yDim(plugin)
             val = plugin.yDim;
@@ -382,7 +390,6 @@ classdef flowEQ < audioPlugin & matlab.System
         function set.zDim(plugin, val)
             plugin.zDim = val;
             setUpdateAutoEqState(plugin, true);
-            fullFilterReset(plugin);
         end
         function val = get.zDim(plugin)
             val = plugin.zDim;
