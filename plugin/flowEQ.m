@@ -59,9 +59,9 @@ classdef flowEQ < audioPlugin & matlab.System
             'PluginName','flowEQ',...
             ... % Model Parameters
             audioPluginParameter('latentDim',      'DisplayName','Latent Dimension',  'Label','',   'Mapping',{'enum','1','2','3'}),...
-            audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -1, 1}),...
-            audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -1, 1}),...
-            audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -1, 1}),...
+            audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -4, 4}),...
+            audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -4, 4}),...
+            audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -4, 4}),...
             audioPluginParameter('decoderMode',    'DisplayName','Decoder Mode',      'Label','',   'Mapping',{'enum', 'free', 'semantic'}),...    
             audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
             audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', -1, 1}),...
@@ -128,9 +128,9 @@ classdef flowEQ < audioPlugin & matlab.System
                 % pass latent vector through decoder
                 x_hat = plugin.net.predict([plugin.xDim plugin.yDim]);
                 % denormalize 1x13 param vector
-                x_hat = plugin.net.denormalize_params(x_hat)
+                x_hat = plugin.net.denormalize(x_hat);
                 % update autoEqState to match new params
-                %plugin.storeEqState(x_hat);
+                plugin.storeEqState(x_hat);
                 % request coefficient update
                 plugin.fullFilterReset();
                 
@@ -229,28 +229,28 @@ classdef flowEQ < audioPlugin & matlab.System
     %----------------------------------------------------------------------
     methods (Access = private)
         function storeEqState(plugin, x_hat)
-            plugin.lowShelfGain   = x_hat(1);
-            plugin.lowShelfFreq   = x_hat(2);
-            plugin.firstBandGain  = x_hat(3);
-            plugin.firstBandFreq  = x_hat(4);
-            plugin.firstBandQ     = x_hat(5);
-            plugin.secondBandGain = x_hat(6);
-            plugin.secondBandFreq = x_hat(7);
-            plugin.secondBandQ    = x_hat(8);
-            plugin.thirdBandGain  = x_hat(9);
-            plugin.thirdBandFreq  = x_hat(10);
-            plugin.thirdBandQ     = x_hat(11);
-            plugin.highShelfGain  = x_hat(12);
-            plugin.highShelfFreq  = x_hat(13);
+            plugin.autoEqState.lowShelfGain   = x_hat(1);
+            plugin.autoEqState.lowShelfFreq   = x_hat(2);
+            plugin.autoEqState.firstBandGain  = x_hat(3);
+            plugin.autoEqState.firstBandFreq  = x_hat(4);
+            plugin.autoEqState.firstBandQ     = x_hat(5);
+            plugin.autoEqState.secondBandGain = x_hat(6);
+            plugin.autoEqState.secondBandFreq = x_hat(7);
+            plugin.autoEqState.secondBandQ    = x_hat(8);
+            plugin.autoEqState.thirdBandGain  = x_hat(9);
+            plugin.autoEqState.thirdBandFreq  = x_hat(10);
+            plugin.autoEqState.thirdBandQ     = x_hat(11);
+            plugin.autoEqState.highShelfGain  = x_hat(12);
+            plugin.autoEqState.highShelfFreq  = x_hat(13);
         end
         %------------------- Full Filter Reset ----------------------------
         function fullFilterReset(plugin)
             % Reset intial conditions for filters
-            plugin.lowShelfState   = zeros(2);
-            plugin.firstBandState  = zeros(2);
-            plugin.secondBandState = zeros(2);
-            plugin.thirdBandState  = zeros(2);
-            plugin.highShelfState  = zeros(2);
+            %plugin.lowShelfState   = zeros(2);
+            %plugin.firstBandState  = zeros(2);
+            %plugin.secondBandState = zeros(2);
+            %plugin.thirdBandState  = zeros(2);
+            %plugin.highShelfState  = zeros(2);
 
             % Request update of manual filters
             setUpdateLowShelf  (plugin, true);

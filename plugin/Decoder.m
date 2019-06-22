@@ -1,6 +1,7 @@
 classdef Decoder
     properties
         W1, b1, W2, b2;
+        xmax, xmin;
     end
     
     methods
@@ -11,6 +12,8 @@ classdef Decoder
             obj.b1 = weights.b1;
             obj.W2 = weights.W2;
             obj.b2 = weights.b2;
+            obj.xmax = weights.xmax;
+            obj.xmin = weights.xmin; 
         end
         
         function y_hat = predict(obj, z)
@@ -29,12 +32,12 @@ classdef Decoder
             x_a = 1 ./ (1 + exp(-x));
         end
         
-        function x_norm = normalize_params(~, x)
-            x_norm = x;
+        function xNorm = normalize(obj, x)
+            xNorm = (x - obj.xmin) ./ (obj.xmax - obj.xmin);
         end
         
-        function x_denorm = denormalize_params(~, x)
-           x_denorm = x;
+        function xDenorm = denormalize(obj, x)
+           xDenorm = (x .* (obj.xmax - obj.xmin)) + obj.xmin;
         end
 
    end

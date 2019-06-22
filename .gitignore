@@ -15,6 +15,7 @@ env/
 .DS_Store
 
 # MATLAB
+audioplugin/
 testbench*.m
 *.m~
 *.vst
