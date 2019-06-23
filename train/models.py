@@ -1,8 +1,9 @@
+import sys
 import tensorflow as tf
 from tensorflow.keras import layers, losses
 from tensorflow.keras import backend as K
 
-def build_single_layer_autoencoder(latent_dim, input_shape):
+def build_simple_autoencoder(latent_dim, input_shape):
     """
     Construct a simple single layer autoencoder.
 
@@ -31,7 +32,43 @@ def build_single_layer_autoencoder(latent_dim, input_shape):
     outputs = decoder(encoder(inputs))
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    autoencoder.compile(optimizer=tf.train.AdamOptimizer(0.001),
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001),
+                        loss='mean_absolute_error')
+
+    return autoencoder, encoder, decoder
+
+def build_single_layer_autoencoder(latent_dim, input_shape):
+    """
+    Construct a simple single layer autoencoder.
+
+    This tends to give better performance than bigger AE.
+    Also initialization is very important for performance. 
+    Trying to restart a few times gives best results.
+
+     1 -> 
+     2 -> 
+     3 -> 
+    ...
+    10 -> 
+
+    """
+
+    inputs = tf.keras.Input(shape=(input_shape,))
+    x = layers.Dense(1024, activation='relu')(inputs)
+    z = layers.Dense(latent_dim, activation='relu')(x)
+    latent_inputs = tf.keras.Input(shape=(latent_dim,))
+    x = layers.Dense(1024, activation='relu')(latent_inputs)
+    outputs = layers.Dense(input_shape, activation='sigmoid')(latent_inputs)
+
+    # make encoder and decoder models for use later 
+    encoder = tf.keras.Model(inputs, z, name='encoder')
+    decoder = tf.keras.Model(latent_inputs, outputs, name='decoder')
+
+    # stick these together to make autoencoder
+    outputs = decoder(encoder(inputs))
+    autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
+
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001),
                         loss='mean_absolute_error')
 
     return autoencoder, encoder, decoder
@@ -63,7 +100,7 @@ def build_multiple_layer_autoencoder(latent_dim, input_shape):
     outputs = decoder(encoder(inputs))
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    model.compile(optimizer=tf.train.AdamOptimizer(0.001),
+    model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
                   loss='mean_absolute_error')
 
     return autoencoder, encoder, decoder
@@ -80,9 +117,11 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     """
     
+    beta = 0.001
+
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
-    x = layers.Dense(1024, activation='relu')(inputs)
+    x = layers.Dense(512, activation='relu')(inputs)
     mu = layers.Dense(latent_dim, activation='linear')(x)
     log_sigma = layers.Dense(latent_dim, activation='linear')(x)
 
@@ -91,7 +130,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # decoder structure (takes latent vector and produces new output)
     latent_inputs = layers.Input(shape=(latent_dim,))
-    x = layers.Dense(1024, activation='relu')(latent_inputs)
+    x = layers.Dense(512, activation='relu')(latent_inputs)
     outputs = layers.Dense(input_shape, activation='sigmoid')(x)
 
     # make encoder and decoder models for use later 
@@ -107,7 +146,8 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     # construct loss function
     def vae_loss(y_true, y_pred):
         recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = 0.001 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        kl_loss = beta * 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        #kl_loss = K.print_tensor(kl_loss[0])
         return K.mean(recon + kl_loss)
 
     autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
@@ -158,7 +198,7 @@ def build_multiple_layer_variational_autoencoder(latent_dim, input_shape):
     # construct loss function
     def vae_loss(y_true, y_pred):
         recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = 0.01 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        kl_loss = 0.002 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
         return K.mean(recon + kl_loss)
 
     autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
