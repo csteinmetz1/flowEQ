@@ -6,6 +6,8 @@ classdef flowEQ < audioPlugin & matlab.System
         net1d;  % one dimensional latent space model
         net2d;  % two dimensional latent space model
         net3d;  % three dimensional latent space model
+        udpvst = false; % set to this true if you want VST with UDP support
+        udpsend;        % UDP sender object to be used
     end     
     
     properties 
@@ -202,8 +204,18 @@ classdef flowEQ < audioPlugin & matlab.System
 
             % Apply output gain
             y = 10.^(plugin.outputGain/20)*u;
+            
+            % ------------------------ UDP Comms --------------------------
+            if coder.target('MATLAB') || plugin.udpvst
+                coefs = [plugin.lowShelfb   plugin.firstBandb...  
+                         plugin.secondBandb plugin.thirdBandb...  
+                         plugin.highShelfb  plugin.lowShelfa...
+                         plugin.firstBanda  plugin.secondBanda...
+                         plugin.thirdBanda  plugin.highShelfa];
+                plugin.udpsend(coefs);
+            end
         end
-
+        
         function setupImpl(plugin, ~)    
             % Initialize filters based on mode (default is 'Auto')
             fs = getSampleRate(plugin);
@@ -225,6 +237,11 @@ classdef flowEQ < audioPlugin & matlab.System
             plugin.net1d = Decoder('decoder1d.mat');
             plugin.net2d = Decoder('decoder2d.mat');
             plugin.net3d = Decoder('decoder3d.mat');
+            
+            if coder.target('MATLAB') || plugin.udpvst
+                % setup UDP sender for comm with DAW
+                plugin.udpsend = dsp.UDPSender('RemoteIPPort', 20000);
+            end
         end
 
         function resetImpl(plugin)
@@ -295,7 +312,7 @@ classdef flowEQ < audioPlugin & matlab.System
         % The JUCE lib is based upon the Cookbook forumlae by RBJ:
         % https://www.w3.org/2011/audio/audio-eq-cookbook.html
         %------------------------------------------------------------------
-        function [b, a] = makeLowShelf(plugin, fs, cutOffFrequency, Q, gainFactor)
+        function [b, a] = makeLowShelf(~, fs, cutOffFrequency, Q, gainFactor)
             % initial values
             A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
@@ -317,7 +334,7 @@ classdef flowEQ < audioPlugin & matlab.System
             b = [b0, b1, b2];
             a = [a0, a1, a2];
         end
-        function [b, a] = makeHighShelf(plugin, fs, cutOffFrequency, Q, gainFactor)
+        function [b, a] = makeHighShelf(~, fs, cutOffFrequency, Q, gainFactor)
             % initial values
             A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
@@ -339,7 +356,7 @@ classdef flowEQ < audioPlugin & matlab.System
             b = [b0, b1, b2];
             a = [a0, a1, a2];
         end
-        function [b, a] = makePeakFilter(plugin, fs, frequency, Q, gainFactor)
+        function [b, a] = makePeakFilter(~, fs, frequency, Q, gainFactor)
             % initial values
             A = max(0.0, sqrt(gainFactor));
             omega = (2 * pi * max(frequency, 2.0)) / fs;
