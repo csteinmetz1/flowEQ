@@ -1,6 +1,6 @@
 import sys
 import tensorflow as tf
-from tensorflow.keras import layers, losses
+from tensorflow.keras import layers, losses, optimizers
 from tensorflow.keras import backend as K
 
 def build_simple_autoencoder(latent_dim, input_shape):
@@ -121,7 +121,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
-    x = layers.Dense(512, activation='relu')(inputs)
+    x = layers.Dense(units=512, activation='relu')(inputs)
     mu = layers.Dense(latent_dim, activation='linear')(x)
     log_sigma = layers.Dense(latent_dim, activation='linear')(x)
 
@@ -130,7 +130,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # decoder structure (takes latent vector and produces new output)
     latent_inputs = layers.Input(shape=(latent_dim,))
-    x = layers.Dense(512, activation='relu')(latent_inputs)
+    x = layers.Dense(units=512, activation='relu')(latent_inputs)
     outputs = layers.Dense(input_shape, activation='sigmoid')(x)
 
     # make encoder and decoder models for use later 
@@ -153,7 +153,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
     autoencoder.summary()
 
-    return autoencoder, encoder, decoder
+    return autoencoder
 
 def build_multiple_layer_variational_autoencoder(latent_dim, input_shape):
     """
@@ -212,3 +212,60 @@ def sample(args):
     dim = K.int_shape(mu)[1] 	# latent dimension
     epsilon = K.random_normal(shape=(batch, dim), mean=0., stddev=1.0)
     return mu + K.exp(log_sigma * 0.5) * epsilon
+
+def tune_single_layer_variational_autoencoder(x_train, y_train, x_val , y_val, params):
+    """
+    Construct a simple single layer variational autoencoder.
+
+     1 -> 
+     2 -> 
+     3 -> 
+    ...
+    10 -> 
+
+    """
+
+    latent_dim = 2
+    input_shape = 13
+
+    beta = 0.001
+
+    # encoder structure (generates mean and log of stddev)
+    inputs = layers.Input(shape=(input_shape,))
+    x = layers.Dense(units=params['encoder_units'], activation=params['activation'])(inputs)
+    mu = layers.Dense(latent_dim, activation='linear')(x)
+    log_sigma = layers.Dense(latent_dim, activation='linear')(x)
+
+    # sampling layer implements reparameterization trick
+    z = layers.Lambda(sample, output_shape=(latent_dim,))([mu, log_sigma])
+
+    # decoder structure (takes latent vector and produces new output)
+    latent_inputs = layers.Input(shape=(latent_dim,))
+    x = layers.Dense(units=params['decoder_units'], activation=params['activation'])(latent_inputs)
+    outputs = layers.Dense(input_shape, activation='sigmoid')(x)
+
+    # make encoder and decoder models for use later 
+    encoder = tf.keras.Model(inputs, [mu, log_sigma, z], name='encoder')
+    decoder = tf.keras.Model(latent_inputs, outputs, name='decoder')
+
+    # stick these together to make autoencoder
+    outputs = decoder(encoder(inputs)[2])
+    autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
+
+    # construct loss function
+    def vae_loss(y_true, y_pred):
+        recon = losses.mean_absolute_error(inputs, outputs)
+        kl_loss = beta * 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
+        #kl_loss = K.print_tensor(kl_loss[0])
+        return K.mean(recon + kl_loss)
+
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
+
+    history = autoencoder.fit(x_train, x_train, 
+                    shuffle=True,
+                    validation_data=(x_val, x_val),
+                    batch_size=8, 
+                    epochs=params['epochs'],
+                    verbose=False)
+
+    return history, autoencoder
