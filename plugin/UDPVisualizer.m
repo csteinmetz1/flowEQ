@@ -1,32 +1,56 @@
 function UDPVisualizer
-%HelperUDPPluginVisualizer Visualize plug-in as it runs in DAW
-%   HelperUDPPluginVisualizer launches a magnitude response visualizer for
-%   an equalizer being executed in a DAW.
+% Provide visual front-end for the flowEQ plugin
 %
-%   This file  is used only in support of UDPDeployedAudioPluginExample and
-%   may be modified or removed in the future.
+% This function reads UDP packets from the plugin
+% and then creates a variety of visualizations.
+%
+% Data format
+% ----------------------------------------------
+% 01-15 : (b)   Numerator biquad coefficients
+% 16-30 : (a)   Denominator biquad coefficients
+% 31-43 : (p)   Parametric EQ parameters
+% 44-46 : (z)   Latent vector
+%    47laten : (dim) Latent dimension
+% 
 
-% Copyright 2015-2018 The MathWorks, Inc.
-
-%% Setup
+%% Configure UDP Receiver
 UDPReceive = dsp.UDPReceiver('LocalIPPort', 20000, ...
                              'MessageDataType', 'double', ...
-                             'MaximumMessageLength', 30, ...
-                             'ReceiveBufferSize', 30*80);
+                             'MaximumMessageLength', 49, ...
+                             'ReceiveBufferSize', 49*80);
 c = onCleanup(@()release(UDPReceive));
-udpRec = UDPReceive(); %#ok
 
 v = dsp.DynamicFilterVisualizer(8192, 44100, [20 20e3], 'XScale','Log');
 show(v);
 
-%% Streaming
-tic
-while toc < 1000 % Visualize for 60 seconds        
-    udpRec = UDPReceive();
-    if ~isempty(udpRec)
-        B = reshape(udpRec(1:15),3,5).';
-        A = reshape(udpRec(16:end),3,5).';
-        v(B,A);
+%% Graphics
+figure;
+
+while true        
+    udpr = UDPReceive();
+    if ~isempty(udpr)
+        size(udpr)
+        b = reshape(udpr(1:15),3,5).';
+        a = reshape(udpr(16:30),3,5).';
+        p = udpr(31:43);
+        z = udpr(44:46);
+        dim = udpr(47);
+        
+        v(b,a);
+        
+        if     dim == 1
+            
+        elseif dim == 2
+            scatter(z(1), z(2));
+            xlim([-4 4])
+            ylim([-4 4])
+        else
+            scatter3(z(1), z(2), z(3));
+            xlim([-4 4])
+            ylim([-4 4])
+            zlim([-4 4])
+        end
+            
     end
 end
 
