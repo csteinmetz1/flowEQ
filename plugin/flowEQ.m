@@ -231,7 +231,6 @@ classdef flowEQ < audioPlugin & matlab.System
                  
                 z = [plugin.xDim plugin.yDim plugin.zDim];
                 dim = str2double(plugin.latentDim);
-                [b, a, p, z, dim]
                 plugin.udpsend([b, a, p, z, dim])
             end
         end
