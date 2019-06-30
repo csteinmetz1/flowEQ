@@ -1,7 +1,7 @@
 classdef LatentDim < int8
     enumeration
-        one   (0)
-        two   (1)
-        three (2)
+        one   (1)
+        two   (2)
+        three (3)
     end
 end

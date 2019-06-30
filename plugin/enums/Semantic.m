@@ -1,7 +1,7 @@
 classdef Semantic < int8
     enumeration
-        warm   (0)
-        bright (1)
-        sharp  (2)
+        warm   (1)
+        bright (2)
+        sharp  (3)
     end
 end
