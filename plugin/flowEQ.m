@@ -1,13 +1,5 @@
 classdef flowEQ < audioPlugin & matlab.System
     %----------------------------------------------------------------------
-    % plugin class constructor
-    %----------------------------------------------------------------------
-    methods
-        function plugin = flowEQ()
-            addpath enums
-        end
-    end
-    %----------------------------------------------------------------------
     % public properties
     %----------------------------------------------------------------------
     properties(Nontunable)
