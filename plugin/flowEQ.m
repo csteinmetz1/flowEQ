@@ -1,5 +1,13 @@
 classdef flowEQ < audioPlugin & matlab.System
     %----------------------------------------------------------------------
+    % plugin class constructor
+    %----------------------------------------------------------------------
+    methods
+        function plugin = flowEQ()
+            addpath enums
+        end
+    end
+    %----------------------------------------------------------------------
     % public properties
     %----------------------------------------------------------------------
     properties(Nontunable)
@@ -24,7 +32,7 @@ classdef flowEQ < audioPlugin & matlab.System
         interpolate    =      0.0;
         secondTerm     = 'bright';
         strength       =      1.0;
-        eqMode         =   'Auto';
+        eqMode         = OperatingMode.automatic;
         % Parametric EQ Parameters (manual)
         lowShelfGain   =     0.00;
         lowShelfFreq   =   150.00;
@@ -69,8 +77,8 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
             audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', -1, 1}),...
             audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
-            audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'log', 0.01, 1}),...
-            audioPluginParameter('eqMode',         'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Manual', 'Auto', 'Semantic'}),...
+            audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0.01, 1}),...
+            audioPluginParameter('eqMode',         'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Automatic', 'Semantic', 'Manual'}),...
             ... % Parametric EQ Parameters 
             audioPluginParameter('inputGain',      'DisplayName','Input Gain',        'Label','dB', 'Mapping',{'pow', 1/3, -80, 12}),...
             audioPluginParameter('outputGain',     'DisplayName','Output Gain',       'Label','dB', 'Mapping',{'pow', 1/3, -80, 12}),...
@@ -127,7 +135,7 @@ classdef flowEQ < audioPlugin & matlab.System
     methods(Access = protected)
         function y = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
-            if plugin.updateAutoEqState && strcmp(plugin.eqMode, 'Auto')
+            if plugin.updateAutoEqState && plugin.eqMode == OperatingMode.automatic
                 % pass latent vector through decoder
                 if     strcmp(plugin.latentDim,'1')
                     x_hat = plugin.net1d.predict([plugin.xDim]);
@@ -147,7 +155,7 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.updateLowShelf
                 fs = getSampleRate(plugin);
-                if ~strcmp(plugin.eqMode, 'Manual')
+                if ~(plugin.eqMode == OperatingMode.manual)
                     [plugin.lowShelfb, plugin.lowShelfa] = plugin.makeLowShelf(...
                                                            fs,...
                                                            plugin.autoEqState.lowShelfFreq,...
@@ -164,7 +172,7 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.updateFirstBand
                 fs = getSampleRate(plugin);
-                if ~strcmp(plugin.eqMode, 'Manual')
+                if ~(plugin.eqMode == OperatingMode.manual)
                     [plugin.firstBandb, plugin.firstBanda] = plugin.makePeakFilter(...
                                                              fs,...
                                                              plugin.autoEqState.firstBandFreq,...
@@ -181,7 +189,7 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.updateSecondBand
                 fs = getSampleRate(plugin);
-                if ~strcmp(plugin.eqMode, 'Manual')
+                if ~(plugin.eqMode == OperatingMode.manual)
                     [plugin.secondBandb, plugin.secondBanda] = plugin.makePeakFilter(...
                                                                fs,...
                                                                plugin.autoEqState.secondBandFreq,...
@@ -197,7 +205,7 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.updateThirdBand
                 fs = getSampleRate(plugin);
-                if ~strcmp(plugin.eqMode, 'Manual')
+                if ~(plugin.eqMode == OperatingMode.manual)
                     [plugin.thirdBandb, plugin.thirdBanda] = plugin.makePeakFilter(...
                                                              fs,...
                                                              plugin.autoEqState.thirdBandFreq,...
@@ -214,7 +222,7 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.updateHighShelf
                 fs = getSampleRate(plugin);
-                if ~strcmp(plugin.eqMode, 'Manual')
+                if ~(plugin.eqMode == OperatingMode.manual)
                     [plugin.highShelfb, plugin.highShelfa] = plugin.makeHighShelf(...
                                                              fs,...
                                                              plugin.autoEqState.highShelfFreq,...
@@ -272,10 +280,10 @@ classdef flowEQ < audioPlugin & matlab.System
             end
         end
         
-        function setupImpl(plugin, ~)    
-            % Initialize filters based on mode (default is 'Auto')
+        function setupImpl(plugin, ~)               
+            % Initialize filters based on mode (default is 'Autommatic')
             fs = getSampleRate(plugin);
-            if strcmp(plugin.eqMode, 'Auto')
+            if plugin.eqMode == OperatingMode.automatic
                 [plugin.lowShelfb,   plugin.lowShelfa]   = plugin.makeLowShelf(...
                                                            fs,...
                                                            plugin.autoEqState.lowShelfFreq,...
