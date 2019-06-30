@@ -18,13 +18,13 @@ classdef flowEQ < audioPlugin & matlab.System
         xDim           =      0.0;
         yDim           =      0.0;
         zDim           =      0.0;
-        decoderMode    = 'manual';
-        latentDim      =      '1';
-        firstTerm      =   'warm';
+        decoderMode    =      DecoderMode.manual;
+        latentDim      =      LatentDim.two;
+        firstTerm      =      Semantic.warm;
         interpolate    =      0.0;
-        secondTerm     = 'bright';
+        secondTerm     =      Semantic.warm;
         strength       =      1.0;
-        eqMode         = OperatingMode.automatic;
+        eqMode         =      OperatingMode.automatic;
         % Parametric EQ Parameters (manual)
         lowShelfGain   =     0.00;
         lowShelfFreq   =   150.00;
@@ -63,12 +63,12 @@ classdef flowEQ < audioPlugin & matlab.System
             'PluginName','flowEQ',...
             ... % Model Parameters
             audioPluginParameter('latentDim',      'DisplayName','Latent Dimension',  'Label','',   'Mapping',{'enum','1','2','3'}),...
-            audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -4, 4}),...
-            audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -4, 4}),...
-            audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -4, 4}),...   
-            audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
+            audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -2, 2}),...
+            audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2}),...
+            audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2}),...   
+            audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'}),...
             audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', -1, 1}),...
-            audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'warm', 'bright', 'tight', 'deep'}),...
+            audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'}),...
             audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0.01, 1}),...
             audioPluginParameter('eqMode',         'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Automatic', 'Semantic', 'Manual'}),...
             ... % Parametric EQ Parameters 
@@ -129,11 +129,11 @@ classdef flowEQ < audioPlugin & matlab.System
             % -------------------- Parameter Updates ----------------------
             if plugin.updateAutoEqState && plugin.eqMode == OperatingMode.automatic
                 % pass latent vector through decoder
-                if     strcmp(plugin.latentDim,'1')
+                if     plugin.latentDim == LatentDim.one
                     x_hat = plugin.net1d.predict([plugin.xDim]);
-                elseif strcmp(plugin.latentDim,'2')
+                elseif plugin.latentDim == LatentDim.two
                     x_hat = plugin.net2d.predict([plugin.xDim plugin.yDim]);
-                else   
+                elseif plugin.latentDim == LatentDim.three   
                     x_hat = plugin.net3d.predict([plugin.xDim plugin.yDim plugin.zDim]);
                 end
                 % denormalize 1x13 param vector
@@ -338,9 +338,9 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             
             % construct decoder objects
-            plugin.net1d = Decoder('decoder1d.mat');
-            plugin.net2d = Decoder('decoder2d.mat');
-            plugin.net3d = Decoder('decoder3d.mat');
+            plugin.net1d = Decoder('matmodels/decoder1d.mat');
+            plugin.net2d = Decoder('matmodels/decoder2d.mat');
+            plugin.net3d = Decoder('matmodels/decoder3d.mat');
             
             if coder.target('MATLAB') || plugin.udpvst
                 % setup UDP sender for comm with DAW
