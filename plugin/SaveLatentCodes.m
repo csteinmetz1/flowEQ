@@ -1,3 +1,14 @@
+function SaveLatentCodes
+% BUILD Generate a VST or AU flowEQ for your platform.
+%
+%   This adds a few folder to the path which is required to compile
+%   the plugin. It also runs some functions which create files that 
+%   are needed. If you want to target a different type or platform 
+%   see the usage of generateAudioPlugin and run from the Command Window. 
+%
+%   Note: This takes about 60 seconds on my 2018 MacBook Pro.
+%
+
 latentCodes1d = {...
      [ 0.2],... % warm
 	 [-0.2],... % bright
@@ -15,6 +26,6 @@ latentCodes3d = {...
 
 codes = {latentCodes1d, latentCodes2d, latentCodes3d};
 
-codes = [0.2 0.0 0.0; -0.2]
+%codes = [0.2 0.0 0.0; -0.2]
 
 save('matmodels/codes.mat', 'codes')
