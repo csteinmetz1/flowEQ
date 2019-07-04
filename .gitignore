@@ -16,7 +16,9 @@ env/
 
 # MATLAB
 audioplugin/
+assets/
 testbench*.m
 *.m~
 *.vst
+*.component
 

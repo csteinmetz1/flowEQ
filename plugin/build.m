@@ -10,10 +10,10 @@ function build
 %
 
 addpath enums
-addpath matmodels
+addpath assets
 
 %% Generate assets for compilation
-HDF52mat            % Convert the latest Keras models (hdf5) to mat files
+ConvertModels       % Convert the latest Keras models (hdf5) to mat files
 SaveLatentCodes     % Create mat file with the semantic embeddings
 
 %% Compile the plugin based on platform

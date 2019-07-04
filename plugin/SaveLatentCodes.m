@@ -28,4 +28,4 @@ codes = {latentCodes1d, latentCodes2d, latentCodes3d};
 
 %codes = [0.2 0.0 0.0; -0.2]
 
-save('matmodels/codes.mat', 'codes')
+save('assets/codes.mat', 'codes')
