@@ -33,14 +33,20 @@ for index, row in eq_params.iterrows():
 	#plot_tf(row.drop("descriptor"), to_file=filename)
 
 # find most common descriptors
-eq_params['descriptor'] = eq_params['descriptor'].map(stem)
-print(eq_params.groupby('descriptor').count().sort_values(by=['low_shelf_gain'], ascending=False))
+#eq_params['descriptor'] = eq_params['descriptor'].map(stem)
+#print(eq_params.groupby('descriptor').count().sort_values(by=['low_shelf_gain'], ascending=False))
 
 # sort 3 parametric bands by center frequency
 sorted_params = eq_params.drop("descriptor", axis=1).apply(sort_params, axis=1)
 
+print(sorted_params.head())
+
 # normalize eq parameters with utility func (then add back in descriptors)
-norm_params = eq_params.drop("descriptor", axis=1).apply(normalize_params, axis=1)
+norm_params = sorted_params.apply(normalize_params, axis=1)
+
+print(norm_params.head())
+
+
 norm_params.insert(0, "descriptor", eq_params["descriptor"])
 
 # save normalized data to file

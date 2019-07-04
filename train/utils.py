@@ -13,26 +13,44 @@ xmin = np.array([-12.0,   22.0, -12.0,   82.0,  0.1, -12.0,  180.0,  0.1, -12.0,
 
 def normalize_params(x):
 
-    # convert to ndarray
-    x = np.array(x)
-
     return (x - xmin) / (xmax - xmin);
 
 def denormalize_params(x):
     
-    # convert to ndarray
-    x = np.array(x)
-
     return (x * (xmax - xmin)) + xmin;
 
 def sort_params(x):
 
-    y = np.zeros(x.shape)
+    y = x.copy()
 
-    sorted_freqs = np.sort(x[3], x[6], x[9])
+    # sort the frequencies 
+    sorted_freqs_idx = np.argsort([x[3], x[6], x[9]])
 
-    y[3] = sorted_freqs[0]
+    # check if the order is correct
+    if not np.array_equal(sorted_freqs_idx, [0, 1, 2]):
 
+        # fix ordering if first band incorrect
+        if   sorted_freqs_idx[0] == 1:
+            y[2:5] = x[5:8]
+        elif sorted_freqs_idx[0] == 2:
+            y[2:5] = x[8:11]
+        
+        # fix ordering if second band incorrect
+        if   sorted_freqs_idx[1] == 0:
+            y[5:8] = x[2:5]
+        elif sorted_freqs_idx[1] == 2:
+            y[5:8] = x[8:11]
+
+        # fix ordering if third band incorrect
+        if   sorted_freqs_idx[2] == 1:
+            y[8:11] = x[5:8]
+        elif sorted_freqs_idx[2] == 0:
+            y[8:11] = x[2:5]
+
+    return y
+
+def scale_gains(x):
+    pass
 
 def make_lowshelf(g, fc, Q, fs=44100):
     """Generate filter coefficients for 2nd order Lowshelf filter.

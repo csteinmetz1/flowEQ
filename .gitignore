@@ -6,6 +6,7 @@ data/
 models/
 train/logs/
 train/plots/
+*.pdf
 
 # Python
 __pycache__
