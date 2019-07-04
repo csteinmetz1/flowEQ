@@ -38,27 +38,25 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
+autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(1, x_train.shape[1])
 
 def make_plots(epoch, logs):
     if (epoch+1) % 100 == 0:
         
-        x = np.array([x_test[2,:]])
+        x = np.array([x_train[2,:]])
         z = encoder.predict(x)
         y = decoder.predict(z)
         x_hat = denormalize_params(y[0])
       
-        mse_tf(x[0], y[0])
-
         compare = compare_tf(x[0], y[0], to_file=os.path.join(logdir,f"reconstruction_{epoch+1}")) 
         buf = io.BytesIO()
         compare.savefig(buf, format='png')
 
-        d = {'warm': 0, 'bright': 1}
-        labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
-        models = (encoder, decoder)
-        data = (x_test, labels)
-        plot_2d_manifold(models, dim=15, data=data, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
+        #d = {'warm': 0, 'bright': 1}
+        #labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
+        #models = (encoder, decoder)
+        #data = (x_test, labels)
+        #plot_2d_manifold(models, dim=15, data=data, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
 
         file_writer = tf.summary.create_file_writer(logdir) 
         with file_writer.as_default():
@@ -77,8 +75,11 @@ autoencoder.fit(x_train, x_train,
                 shuffle=True,
                 validation_data=(x_test,x_test),
                 batch_size=8, 
-                epochs=1500,
+                epochs=1000,
                 callbacks=[tensorboard_callback, plotting_callback],
-                verbose=False)
+                verbose=True)
 
-autoencoder.save_weights('../models/vae.h5', save_format='h5')
+autoencoder.save_weights('../models/vae1d.h5', save_format='h5')
+#x = np.array([1, 1]).reshape(1, 2)
+#print("x:", x)
+#print("x_hat:", decoder.predict(x))

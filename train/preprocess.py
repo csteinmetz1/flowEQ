@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from utils import normalize_params, plot_tf, make_highself, make_lowshelf, make_peaking, stem
+from utils import *
 
 # read in original dataset 
 df = pd.read_csv('../data/safe/SAFEEqualiserUserData.csv', header=None)
@@ -35,6 +35,9 @@ for index, row in eq_params.iterrows():
 # find most common descriptors
 eq_params['descriptor'] = eq_params['descriptor'].map(stem)
 print(eq_params.groupby('descriptor').count().sort_values(by=['low_shelf_gain'], ascending=False))
+
+# sort 3 parametric bands by center frequency
+sorted_params = eq_params.drop("descriptor", axis=1).apply(sort_params, axis=1)
 
 # normalize eq parameters with utility func (then add back in descriptors)
 norm_params = eq_params.drop("descriptor", axis=1).apply(normalize_params, axis=1)
