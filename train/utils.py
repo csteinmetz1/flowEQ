@@ -259,7 +259,10 @@ def subplot_tf(x, fs, ax, zeroline=True, ticks=False, norm=True):
     ax.tick_params(labelbottom=False, labelleft=False)   
     plt.grid(False, which='both')
 
-def plot_tf(x, fs=44100, to_file=""):
+def plot_tf(x, fs=44100, plot_title=None, to_file=""):
+
+    if not plot_title:
+        plot_title = 'Digital filter frequency response'
 
     # convert eq params to second order sections
     sos = params2sos(x, fs)
@@ -269,7 +272,7 @@ def plot_tf(x, fs=44100, to_file=""):
 
     # plot the magnitude respose
     fig, ax1 = plt.subplots()
-    ax1.set_title('Digital filter frequency response')
+    ax1.set_title(plot_title)
     ax1.semilogx(f, 20 * np.log10(abs(h)), 'b')
     ax1.set_ylabel('Amplitude [dB]', color='b')
     ax1.set_xlabel('Frequency [Hz]')
