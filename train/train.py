@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import layers
+import matplotlib.pyplot as plt
 
 from models import *
 from utils import *
@@ -27,10 +28,10 @@ eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_
 eq_df = eq_params[eq_params['descriptor'].isin(['bright', 'warm'])].reset_index()
 
 # make train / test split
-x_train = eq_df.values[:800,2:]
-y_train = eq_df.values[:800,1]
-x_test  = eq_df.values[800:,2:]
-y_test  = eq_df.values[800:,1]
+x_train = eq_df.values[:820,2:]
+y_train = eq_df.values[:820,1]
+x_test  = eq_df.values[820:,2:]
+y_test  = eq_df.values[820:,1]
 
 # inspect training and testing data
 print("Training set   : ", x_train.shape)
@@ -38,19 +39,23 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(1, x_train.shape[1])
+autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
 
 def make_plots(epoch, logs):
     if (epoch+1) % 100 == 0:
         
-        x = np.array([x_train[2,:]])
-        z = encoder.predict(x)
-        y = decoder.predict(z)
-        x_hat = denormalize_params(y[0])
+        z = encoder.predict(x_test)
+        x_test_hat = decoder.predict(z)
       
-        compare = compare_tf(x[0], y[0], to_file=os.path.join(logdir,f"reconstruction_{epoch+1}")) 
-        buf = io.BytesIO()
-        compare.savefig(buf, format='png')
+        # make directory for current epoch
+        epoch_dir = os.path.join(logdir, f"epoch{epoch+1}")
+        if not os.path.isdir(epoch_dir):
+            os.makedirs(epoch_dir)
+
+        compare = evaluate_reconstruction(x_test, x_test_hat, epoch_dir) 
+        #buf = io.BytesIO()
+        #compare.savefig(buf, format='png')
+        #plt.close(compare)
 
         #d = {'warm': 0, 'bright': 1}
         #labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
@@ -58,11 +63,11 @@ def make_plots(epoch, logs):
         #data = (x_test, labels)
         #plot_2d_manifold(models, dim=15, data=data, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
 
-        file_writer = tf.summary.create_file_writer(logdir) 
-        with file_writer.as_default():
-            compare_plot = tf.image.decode_png(buf.getvalue(), channels=0)
-            compare_plot = tf.expand_dims(compare_plot, 0)
-            tf.summary.image("Reconstruction", compare_plot, step=epoch+1)
+        #file_writer = tf.summary.create_file_writer(logdir) 
+        #with file_writer.as_default():
+        #    compare_plot = tf.image.decode_png(buf.getvalue(), channels=0)
+        #    compare_plot = tf.expand_dims(compare_plot, 0)
+        #    tf.summary.image("Reconstruction", compare_plot, step=epoch+1)
 
 
 # tensorboard logging setup
@@ -75,11 +80,11 @@ autoencoder.fit(x_train, x_train,
                 shuffle=True,
                 validation_data=(x_test,x_test),
                 batch_size=8, 
-                epochs=1000,
+                epochs=40000,
                 callbacks=[tensorboard_callback, plotting_callback],
                 verbose=True)
 
-autoencoder.save_weights('../models/vae1d.h5', save_format='h5')
+autoencoder.save_weights('../models/vae2d_20000epochs.h5', save_format='h5')
 #x = np.array([1, 1]).reshape(1, 2)
 #print("x:", x)
 #print("x_hat:", decoder.predict(x))
