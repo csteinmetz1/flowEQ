@@ -23,15 +23,21 @@ assert version.parse(tf.__version__).release[0] >= 2, \
 
 # load normalized data from file
 eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_col=0)
+count = pd.read_csv("../data/safe/descriptors.csv", sep=",", index_col=0)
 
 # only use data points with bright or warm descriptors
-eq_df = eq_params[eq_params['descriptor'].isin(['bright', 'warm'])].reset_index()
+#eq_df = eq_params[eq_params['descriptor'].isin(['bright', 'warm'])].reset_index()
+
+# only use data points within the top 20 occuring descriptors
+top_descriptors = count.loc[0:5, 'descriptor'].tolist()
+warm_bright = ['warm', 'bright']
+eq_df = eq_params[eq_params['descriptor'].isin(warm_bright)]
 
 # make train / test split
-x_train = eq_df.values[:820,2:]
-y_train = eq_df.values[:820,1]
-x_test  = eq_df.values[820:,2:]
-y_test  = eq_df.values[820:,1]
+x_train = eq_df.values[:800,1:]
+y_train = eq_df.values[:800,1]
+x_test  = eq_df.values[800:,1:]
+y_test  = eq_df.values[800:,1]
 
 # inspect training and testing data
 print("Training set   : ", x_train.shape)
@@ -39,29 +45,31 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
+#autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
+autoencoder, encoder, decoder = build_single_layer_autoencoder(2, x_train.shape[1])
+
 
 def make_plots(epoch, logs):
     if (epoch+1) % 100 == 0:
         
-        z = encoder.predict(x_test)
+        z = encoder.predict(x_test[:1,:])
         x_test_hat = decoder.predict(z)
       
         # make directory for current epoch
-        epoch_dir = os.path.join(logdir, f"epoch{epoch+1}")
-        if not os.path.isdir(epoch_dir):
-            os.makedirs(epoch_dir)
+        #epoch_dir = os.path.join(logdir, f"epoch{epoch+1}")
+        #if not os.path.isdir(epoch_dir):
+        #    os.makedirs(epoch_dir)
 
-        compare = evaluate_reconstruction(x_test, x_test_hat, epoch_dir) 
+        #compare = evaluate_reconstruction(x_test, x_test_hat, epoch_dir) 
         #buf = io.BytesIO()
         #compare.savefig(buf, format='png')
         #plt.close(compare)
 
-        #d = {'warm': 0, 'bright': 1}
-        #labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
-        #models = (encoder, decoder)
-        #data = (x_test, labels)
-        #plot_2d_manifold(models, dim=15, data=data, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
+        d = {b: a for a, b in enumerate(set(warm_bright))}
+        labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
+        models = (encoder, decoder)
+        data = (x_test, labels, d)
+        plot_2d_manifold(models, data=data, dim=15, variational=False, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
 
         #file_writer = tf.summary.create_file_writer(logdir) 
         #with file_writer.as_default():
@@ -80,11 +88,11 @@ autoencoder.fit(x_train, x_train,
                 shuffle=True,
                 validation_data=(x_test,x_test),
                 batch_size=8, 
-                epochs=40000,
+                epochs=1000,
                 callbacks=[tensorboard_callback, plotting_callback],
                 verbose=True)
 
-autoencoder.save_weights('../models/vae2d_20000epochs.h5', save_format='h5')
+autoencoder.save_weights('../models/vae2d_10000epochs.h5', save_format='h5')
 #x = np.array([1, 1]).reshape(1, 2)
 #print("x:", x)
 #print("x_hat:", decoder.predict(x))
