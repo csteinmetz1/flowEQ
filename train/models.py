@@ -54,10 +54,10 @@ def build_single_layer_autoencoder(latent_dim, input_shape):
     """
 
     inputs = tf.keras.Input(shape=(input_shape,))
-    x = layers.Dense(1024, activation='relu')(inputs)
+    x = layers.Dense(256, activation='relu')(inputs)
     z = layers.Dense(latent_dim, activation='relu')(x)
     latent_inputs = tf.keras.Input(shape=(latent_dim,))
-    x = layers.Dense(1024, activation='relu')(latent_inputs)
+    x = layers.Dense(256, activation='relu')(latent_inputs)
     outputs = layers.Dense(input_shape, activation='sigmoid')(latent_inputs)
 
     # make encoder and decoder models for use later 
@@ -121,7 +121,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
-    x = layers.Dense(units=512, activation='relu')(inputs)
+    x = layers.Dense(units=256, activation='relu')(inputs)
     mu = layers.Dense(latent_dim, activation='linear')(x)
     log_sigma = layers.Dense(latent_dim, activation='linear')(x)
 
@@ -130,7 +130,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
 
     # decoder structure (takes latent vector and produces new output)
     latent_inputs = layers.Input(shape=(latent_dim,))
-    x = layers.Dense(units=512, activation='relu')(latent_inputs)
+    x = layers.Dense(units=256, activation='relu')(latent_inputs)
     outputs = layers.Dense(input_shape, activation='sigmoid')(x)
 
     # make encoder and decoder models for use later 
@@ -153,7 +153,7 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
     autoencoder.summary()
 
-    return autoencoder
+    return autoencoder, encoder, decoder
 
 def build_multiple_layer_variational_autoencoder(latent_dim, input_shape):
     """
