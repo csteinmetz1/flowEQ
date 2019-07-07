@@ -28,6 +28,7 @@ classdef flowEQ < audioPlugin & matlab.System
         secondTerm     =      Semantic.warm;
         strength       =      1.0;
         eqMode         =      OperatingMode.automatic;
+        extend         =    false;
         % Parametric EQ Parameters (manual)
         lowShelfGain   =     0.00;
         lowShelfFreq   =   150.00;
@@ -74,17 +75,18 @@ classdef flowEQ < audioPlugin & matlab.System
                                   'Padding',[20 20 20 20]),...
             ...%'BackgroundColor',[19/255, 22/255, 26/255],...
             ... % Model Parameters
-            audioPluginParameter('latentDim',      'DisplayName','Latent',            'Label','',   'Mapping',{'enum','1','2','3'},                        'Layout',[6,5; 6,6], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('latentDim',      'DisplayName','Latent',            'Label','',   'Mapping',{'enum','1','2','3'},                        'Layout',[7,5; 7,6], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('eqMode',         'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Automatic', 'Semantic', 'Manual'}, 'Layout',[1,5; 1,8], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[2,4; 2,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[3,4; 3,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[4,4; 4,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('extend',         'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'On', 'Off'},                       'Layout',[5,5; 5,5], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[2,7; 2,8], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[3,7; 3,8], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                               'Layout',[4,7; 4,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0, 1},                              'Layout',[7,5; 7,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('inputGain',      'DisplayName','Input Gain',        'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,1; 7,1], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
-            audioPluginParameter('outputGain',     'DisplayName','Output Gain',       'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,2; 7,2], 'DisplayNameLocation', 'below', 'Style', 'vslider'))
+            audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0, 1},                              'Layout',[8,5; 8,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('inputGain',      'DisplayName','In Gain',           'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,1; 7,1], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
+            audioPluginParameter('outputGain',     'DisplayName','Out Gain',          'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,2; 7,2], 'DisplayNameLocation', 'below', 'Style', 'vslider'))
     end
     %----------------------------------------------------------------------
     % private properties
@@ -152,6 +154,13 @@ classdef flowEQ < audioPlugin & matlab.System
                         y = latentCode(2);
                         z = latentCode(3);
                     end
+                end
+
+                % extend the area of the latent space that is reachable
+                if plugin.extend
+                    x = x * 2;
+                    y = y * 2;
+                    z = z * 2;
                 end
 
                 % pass latent vector through decoder
@@ -551,6 +560,13 @@ classdef flowEQ < audioPlugin & matlab.System
         end
         function val = get.eqMode(plugin)
             val = plugin.eqMode;
+        end
+        function set.extend(plugin, val)
+            plugin.extend = val;
+            setUpdateAutoEqState(plugin, true);
+        end
+        function val = get.extend(plugin)
+            val = plugin.extend;
         end
         %---------------------------- Lowshelf ----------------------------
         function set.lowShelfGain(plugin, val)
