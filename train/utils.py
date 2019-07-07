@@ -351,7 +351,7 @@ def plot_examples(data, filename):
     plt.tight_layout()
     plt.savefig(filename)
 
-def plot_2d_manifold(models, dim=15, data=None, to_file=None):
+def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
     """Display a 2D manifold of EQ transfer functions.
 
     Creates an array of subplots that is dim x dim in size. 
@@ -375,8 +375,8 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
         encoder, decoder = models
 
         # linearly spaced coordinates corresponding to the 2D plot
-        grid_x = np.linspace(-4, 4, dim)
-        grid_y = np.linspace(-4, 4, dim)[::-1]
+        grid_x = np.linspace(-2, 2, dim)
+        grid_y = np.linspace(-2, 2, dim)[::-1]
 
         # create new square figure
         fig1 = plt.figure(figsize=(10, 10))
@@ -398,13 +398,25 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
 
     if data:
         # unpack samples and associated category labels
-        samples, labels = data
+        samples, labels, classes = data
 
-        z_mean, _, _ = encoder.predict(samples, batch_size=8)
+        colors = ["#21313E", "#53A976"] # "#20575F", "#268073", ", "#98CF6F", 
 
-        fig2 = plt.figure(figsize=(12, 10))
-        plt.scatter(z_mean[:, 0], z_mean[:, 1], c=labels)
-        plt.colorbar()
+        if variational:
+            z_mean, _, _ = encoder.predict(samples, batch_size=8)
+        else:
+            z_mean = encoder.predict(samples, batch_size=8)
+
+        fig2, ax = plt.subplots(figsize=(12, 10))
+
+        for descriptor_class, descriptor_index in classes.items():
+            class_samples = z_mean[np.where(labels == descriptor_index)]
+            scatter = ax.scatter(class_samples[:,0], class_samples[:,1], c=colors[descriptor_index], label=descriptor_class)
+
+        plt.legend()
+        #legend1 = ax.legend(*scatter.legend_elements(), loc="lower left", title="Classes")
+        #ax.add_artist(legend1)
+        #plt.colorbar()
         plt.xlabel("z[0]")
         plt.ylabel("z[1]")
     
