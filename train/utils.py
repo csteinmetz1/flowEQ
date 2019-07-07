@@ -232,9 +232,9 @@ def params2sos(x, fs):
 
     return np.array(sos).reshape(5,6)
 
-def subplot_tf(x, fs, ax, zeroline=True, ticks=False, norm=True):
+def subplot_tf(x, fs, ax, zeroline=True, ticks=False, denorm=True):
 
-    if norm:
+    if denorm:
         x = denormalize_params(x)
 
     # convert eq params to second order sections
@@ -387,9 +387,9 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
                 subplot_idx = (i*dim) + j + 1
                 z_sample = np.array([[xi, yi]])
                 x_decoded = decoder.predict(z_sample)
-                x = x_decoded[0].reshape(13, 1)
+                x = x_decoded[0].reshape(13,)
                 ax = plt.subplot(dim, dim, subplot_idx)
-                subplot_tf(x, 44100, ax)
+                subplot_tf(x, 44100, ax, denorm=True)
 
         if to_file:
             fig1.savefig(to_file + "1.png")
@@ -415,4 +415,7 @@ def plot_2d_manifold(models, dim=15, data=None, to_file=None):
 
 def stem(word):
     word = word.lower().strip().split()[0]
+    word = word.replace(',', '')
+    word = word.replace('brighter', 'bright')
+    word = word.replace('airy', 'air')
     return word
