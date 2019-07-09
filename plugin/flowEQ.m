@@ -27,7 +27,7 @@ classdef flowEQ < audioPlugin & matlab.System
         interpolate    =      0.0;
         secondTerm     =      Semantic.warm;
         strength       =      1.0;
-        eqMode         =      OperatingMode.automatic;
+        eqMode         =      OperatingMode.traverse;
         extend         =    false;
         % Parametric EQ Parameters (manual)
         lowShelfGain   =     0.00;
@@ -146,7 +146,7 @@ classdef flowEQ < audioPlugin & matlab.System
                 % initialize temporary latent vector values 
                 x = 0; y = 0; z = 0;
                 
-                if plugin.eqMode == OperatingMode.automatic
+                if plugin.eqMode == OperatingMode.traverse
                     x = plugin.xDim;
                     y = plugin.yDim;
                     z = plugin.zDim;
@@ -172,7 +172,7 @@ classdef flowEQ < audioPlugin & matlab.System
 
                 % extend the area of the latent space that is reachable
                 % this is only applicable in Traverse mode
-                if plugin.extend && plugin.eqMode == OperatingMode.automatic
+                if plugin.extend && plugin.eqMode == OperatingMode.traverse
                     x = x * 2;
                     y = y * 2;
                     z = z * 2;
@@ -338,7 +338,7 @@ classdef flowEQ < audioPlugin & matlab.System
         function setupImpl(plugin, ~)               
             % Initialize filters based on mode (default is 'Autommatic')
             fs = getSampleRate(plugin);
-            if plugin.eqMode == OperatingMode.automatic
+            if plugin.eqMode == OperatingMode.traverse
                 [plugin.lowShelfb,   plugin.lowShelfa]   = plugin.makeLowShelf(...
                                                            fs,...
                                                            plugin.autoEqState.lowShelfFreq,...
