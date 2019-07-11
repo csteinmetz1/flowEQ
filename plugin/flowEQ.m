@@ -16,33 +16,38 @@ classdef flowEQ < audioPlugin & matlab.System
     
     properties 
         % In/Out Gain Parameters
-        inputGain      =     0.00;   
-        outputGain     =     0.00;
+        inputGain        =     0.00;   
+        outputGain       =     0.00;
         % Neural Network Parameters
-        xDim           =      0.0;
-        yDim           =      0.0;
-        zDim           =      0.0;
-        latentDim      =      LatentDim.two;
-        firstTerm      =      Semantic.warm;
-        interpolate    =      0.0;
-        secondTerm     =      Semantic.warm;
-        strength       =      1.0;
-        eqMode         =      OperatingMode.traverse;
-        extend         =    false;
+        xDim             =      0.0;
+        yDim             =      0.0;
+        zDim             =      0.0;
+        interpolate      =      0.0;
+        strength         =      1.0;
+        secondTerm       =  Semantic.warm;
+        latentDim        =  LatentDim.two;
+        firstTerm        =  Semantic.warm;
+        eqMode           =  OperatingMode.traverse;
+        extend           =    false;
         % Parametric EQ Parameters (manual)
-        lowShelfGain   =     0.00;
-        lowShelfFreq   =   150.00;
-        firstBandGain  =     0.00;
-        firstBandFreq  =   650.00;
-        firstBandQ     =     0.71;
-        secondBandGain =     0.00;
-        secondBandFreq =  1000.00;
-        secondBandQ    =     0.71;
-        thirdBandGain  =     0.00;
-        thirdBandFreq  =  3300.00;
-        thirdBandQ     =     0.71;
-        highShelfGain  =     0.00;
-        highShelfFreq  =   8200.0;
+        lowShelfActive   =     true;
+        lowShelfGain     =     0.00;
+        lowShelfFreq     =   150.00;
+        firstBandActive  =     true;
+        firstBandGain    =     0.00;
+        firstBandFreq    =   650.00;
+        firstBandQ       =     0.71;
+        secondBandActive =     true;
+        secondBandGain   =     0.00;
+        secondBandFreq   =  1000.00;
+        secondBandQ      =     0.71;
+        thirdBandActive  =     true;
+        thirdBandGain    =     0.00;
+        thirdBandFreq    =  3300.00;
+        thirdBandQ       =     0.71;
+        highShelfActive  =     true;
+        highShelfGain    =     0.00;
+        highShelfFreq    =   8200.0;
         % Parametric EQ Parameters (auto)
         autoEqState        = struct(...
         'lowShelfGain',      0.00,...
@@ -68,40 +73,45 @@ classdef flowEQ < audioPlugin & matlab.System
             'VendorName','Christian Steinmetz',...
             'VendorVersion','0.5.0',...
             ... % GUI Configuration
-            audioPluginGridLayout('RowHeight',[25 25 25 25 25 25 25 25 25 80 25 80 25 80 25],...
+            audioPluginGridLayout('RowHeight',[25 25 25 25 25 25 25 25 25 60 25 60 25 60 25],...
                                   'ColumnWidth',[60 60 60 100 100 100 100 100],...
                                   'RowSpacing',15,...
                                   'ColumnSpacing',15,...
                                   'Padding',[20 20 20 20]),...
             ...%'BackgroundColor',[19/255, 22/255, 26/255],...
             ... % Model Parameters
-            audioPluginParameter('latentDim',      'DisplayName','Latent',            'Label','',   'Mapping',{'enum','1','2','3'},                        'Layout',[7,5; 7,6], 'DisplayNameLocation', 'left'),...
-            audioPluginParameter('eqMode',         'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Automatic', 'Semantic', 'Manual'}, 'Layout',[1,5; 1,8], 'DisplayNameLocation', 'left'),...
-            audioPluginParameter('xDim',           'DisplayName','x',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[2,4; 2,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('yDim',           'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[3,4; 3,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('zDim',           'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[4,4; 4,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('extend',         'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'On', 'Off'},                       'Layout',[5,5; 5,5], 'DisplayNameLocation', 'left'),...
-            audioPluginParameter('firstTerm',      'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[2,7; 2,8], 'DisplayNameLocation', 'left'),...
-            audioPluginParameter('secondTerm',     'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[3,7; 3,8], 'DisplayNameLocation', 'left'),...
-            audioPluginParameter('interpolate',    'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                               'Layout',[4,7; 4,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('strength',       'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0, 1},                              'Layout',[8,5; 8,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
-            audioPluginParameter('inputGain',      'DisplayName','In Gain',           'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,1; 7,1], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
-            audioPluginParameter('outputGain',     'DisplayName','Out Gain',          'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,2; 7,2], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
+            audioPluginParameter('latentDim',       'DisplayName','Latent',            'Label','',   'Mapping',{'enum','1','2','3'},                        'Layout',[6,5; 6,6], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('eqMode',          'DisplayName','EQ Mode',           'Label','',   'Mapping',{'enum', 'Automatic', 'Semantic', 'Manual'}, 'Layout',[1,5; 1,8], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('xDim',            'DisplayName','x',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[2,4; 2,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('yDim',            'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[3,4; 3,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('zDim',            'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                              'Layout',[4,4; 4,5], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('extend',          'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'On', 'Off'},                       'Layout',[5,5; 5,5], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[2,7; 2,8], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[3,7; 3,8], 'DisplayNameLocation', 'left'),...
+            audioPluginParameter('interpolate',     'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                               'Layout',[4,7; 4,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('strength',        'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0, 1},                              'Layout',[7,5; 7,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('inputGain',       'DisplayName','In Gain',           'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,1; 7,1], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
+            audioPluginParameter('outputGain',      'DisplayName','Out Gain',          'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,2; 7,2], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
             ... % Parametric EQ Parameters 
-            audioPluginParameter('lowShelfGain',   'DisplayName','Lowshelf Gain',     'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,4; 10,4], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('lowShelfFreq',   'DisplayName','Lowshelf Freq.',    'Label','Hz', 'Mapping',{'lin', 22, 1000},                           'Layout',[12,4; 12,4], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('firstBandGain',  'DisplayName','First Band Gain',   'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,5; 10,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('firstBandFreq',  'DisplayName','First Band Freq.',  'Label','Hz', 'Mapping',{'lin', 82, 3900},                           'Layout',[12,5; 12,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('firstBandQ',     'DisplayName','First Band Q',      'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,5; 14,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('secondBandGain', 'DisplayName','Second Band Gain',  'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,6; 10,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('secondBandFreq', 'DisplayName','Second Band Freq.', 'Label','Hz', 'Mapping',{'lin', 180, 4700},                          'Layout',[12,6; 12,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('secondBandQ',    'DisplayName','Second Band Q',     'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,6; 14,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('thirdBandGain',  'DisplayName','Third Band Gain',   'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,7; 10,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('thirdBandFreq',  'DisplayName','Third Band Freq.',  'Label','Hz', 'Mapping',{'lin', 220, 10000},                         'Layout',[12,7; 12,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('thirdBandQ',     'DisplayName','Third Band Q',      'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,7; 14,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
-            audioPluginParameter('highShelfGain',  'DisplayName','Highshelf Gain',    'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,8; 10,8], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),... 
-            audioPluginParameter('highShelfFreq',  'DisplayName','Highshelf Freq.',   'Label','Hz', 'Mapping',{'lin', 580, 20000},                         'Layout',[12,8; 12,8], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'))
-    end
+            audioPluginParameter('lowShelfActive',  'DisplayName','Active',            'Label','',   'Mapping',{'enum', 'Bypassed', 'Active'},              'Layout',[9,4; 9,4],   'DisplayNameLocation', 'none',  'Style', 'checkbox'),...
+            audioPluginParameter('lowShelfGain',    'DisplayName','Lowshelf Gain',     'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,4; 10,4], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('lowShelfFreq',    'DisplayName','Lowshelf Freq.',    'Label','Hz', 'Mapping',{'lin', 22, 1000},                           'Layout',[12,4; 12,4], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('firstBandActive', 'DisplayName','Active',            'Label','',   'Mapping',{'enum', 'Bypassed', 'Active'},              'Layout',[9,5; 9,5],   'DisplayNameLocation', 'none',  'Style', 'checkbox'),...
+            audioPluginParameter('firstBandGain',   'DisplayName','First Band Gain',   'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,5; 10,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('firstBandFreq',   'DisplayName','First Band Freq.',  'Label','Hz', 'Mapping',{'lin', 82, 3900},                           'Layout',[12,5; 12,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('firstBandQ',      'DisplayName','First Band Q',      'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,5; 14,5], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('secondBandActive','DisplayName','Active',            'Label','',   'Mapping',{'enum', 'Bypassed', 'Active'},              'Layout',[9,6; 9,6],   'DisplayNameLocation', 'none',  'Style', 'checkbox'),...
+            audioPluginParameter('secondBandGain',  'DisplayName','Second Band Gain',  'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,6; 10,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('secondBandFreq',  'DisplayName','Second Band Freq.', 'Label','Hz', 'Mapping',{'lin', 180, 4700},                          'Layout',[12,6; 12,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('secondBandQ',     'DisplayName','Second Band Q',     'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,6; 14,6], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('thirdBandActive', 'DisplayName','Active',            'Label','',   'Mapping',{'enum', 'Bypassed', 'Active'},              'Layout',[9,7; 9,7],   'DisplayNameLocation', 'none',  'Style', 'checkbox'),...
+            audioPluginParameter('thirdBandGain',   'DisplayName','Third Band Gain',   'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,7; 10,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('thirdBandFreq',   'DisplayName','Third Band Freq.',  'Label','Hz', 'Mapping',{'lin', 220, 10000},                         'Layout',[12,7; 12,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('thirdBandQ',      'DisplayName','Third Band Q',      'Label','',   'Mapping',{'lin', 0.1, 10},                            'Layout',[14,7; 14,7], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),...
+            audioPluginParameter('highShelfActive', 'DisplayName','Active',            'Label','',   'Mapping',{'enum', 'Bypassed', 'Active'},              'Layout',[9,8; 9,8],   'DisplayNameLocation', 'none',  'Style', 'checkbox'),...
+            audioPluginParameter('highShelfGain',   'DisplayName','Highshelf Gain',    'Label','dB', 'Mapping',{'lin', -12, 12},                            'Layout',[10,8; 10,8], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'),... 
+            audioPluginParameter('highShelfFreq',   'DisplayName','Highshelf Freq.',   'Label','Hz', 'Mapping',{'lin', 580, 20000},                         'Layout',[12,8; 12,8], 'DisplayNameLocation', 'below', 'Style', 'rotaryknob'));
+        end
     %----------------------------------------------------------------------
     % private properties
     %----------------------------------------------------------------------
@@ -279,12 +289,22 @@ classdef flowEQ < audioPlugin & matlab.System
             % Apply input gain
             u = 10.^(plugin.inputGain/20)*u;
 
-            % Apply biquad filters one-by-one
-            [u, plugin.lowShelfState]   = filter(plugin.lowShelfb,   plugin.lowShelfa,   u, plugin.lowShelfState);
-            [u, plugin.firstBandState]  = filter(plugin.firstBandb,  plugin.firstBanda,  u, plugin.firstBandState);
-            [u, plugin.secondBandState] = filter(plugin.secondBandb, plugin.secondBanda, u, plugin.secondBandState);
-            [u, plugin.thirdBandState]  = filter(plugin.thirdBandb,  plugin.thirdBanda,  u, plugin.thirdBandState); 
-            [u, plugin.highShelfState]  = filter(plugin.highShelfb,  plugin.highShelfa,  u, plugin.highShelfState);
+            % Apply biquad filters one-by-one only if active
+            if plugin.lowShelfActive
+                [u, plugin.lowShelfState]   = filter(plugin.lowShelfb,   plugin.lowShelfa,   u, plugin.lowShelfState);
+            end
+            if plugin.firstBandActive
+                [u, plugin.firstBandState]  = filter(plugin.firstBandb,  plugin.firstBanda,  u, plugin.firstBandState);
+            end
+            if plugin.secondBandActive
+                [u, plugin.secondBandState] = filter(plugin.secondBandb, plugin.secondBanda, u, plugin.secondBandState);
+            end
+            if plugin.thirdBandActive
+                [u, plugin.thirdBandState]  = filter(plugin.thirdBandb,  plugin.thirdBanda,  u, plugin.thirdBandState); 
+            end
+            if plugin.highShelfActive
+                [u, plugin.highShelfState]  = filter(plugin.highShelfb,  plugin.highShelfa,  u, plugin.highShelfState);
+            end
 
             % Apply output gain
             y = 10.^(plugin.outputGain/20)*u;
@@ -600,6 +620,12 @@ classdef flowEQ < audioPlugin & matlab.System
             val = plugin.extend;
         end
         %---------------------------- Lowshelf ----------------------------
+        function set.lowShelfActive(plugin, val)
+            plugin.lowShelfActive = val;
+        end
+        function val = get.lowShelfActive(plugin)
+            val = plugin.lowShelfActive;
+        end
         function set.lowShelfGain(plugin, val)
             plugin.lowShelfGain = val;
             setUpdateLowShelf(plugin, true);
@@ -615,6 +641,12 @@ classdef flowEQ < audioPlugin & matlab.System
             val = plugin.lowShelfFreq;
         end
         %---------------------------- First band ----------------------------
+        function set.firstBandActive(plugin, val)
+            plugin.firstBandActive = val;
+        end
+        function val = get.firstBandActive(plugin)
+            val = plugin.firstBandActive;
+        end
         function set.firstBandGain(plugin, val)
             plugin.firstBandGain = val;
             setUpdateFirstBand(plugin, true);
@@ -637,6 +669,12 @@ classdef flowEQ < audioPlugin & matlab.System
             val = plugin.firstBandFreq;
         end
         %---------------------------- Second band ----------------------------
+        function set.secondBandActive(plugin, val)
+            plugin.secondBandActive = val;
+        end
+        function val = get.secondBandActive(plugin)
+            val = plugin.secondBandActive;
+        end
         function set.secondBandGain(plugin, val)
             plugin.secondBandGain = val;
             setUpdateSecondBand(plugin, true);
@@ -659,6 +697,12 @@ classdef flowEQ < audioPlugin & matlab.System
             val = plugin.secondBandFreq;
         end
         %---------------------------- Third band ----------------------------
+        function set.thirdBandActive(plugin, val)
+            plugin.thirdBandActive = val;
+        end
+        function val = get.thirdBandActive(plugin)
+            val = plugin.thirdBandActive;
+        end
         function set.thirdBandGain(plugin, val)
             plugin.thirdBandGain = val;
             setUpdateThirdBand(plugin, true);
@@ -681,6 +725,12 @@ classdef flowEQ < audioPlugin & matlab.System
             val = plugin.thirdBandFreq;
         end
         %---------------------------- Highself ----------------------------
+        function set.highShelfActive(plugin, val)
+            plugin.highShelfActive = val;
+        end
+        function val = get.highShelfActive(plugin)
+            val = plugin.highShelfActive;
+        end
         function set.highShelfGain(plugin, val)
             plugin.highShelfGain = val;
             setUpdateHighShelf(plugin, true);
