@@ -18,6 +18,7 @@ classdef flowEQ < audioPlugin & matlab.System
         % In/Out Gain Parameters
         inputGain        =     0.00;   
         outputGain       =     0.00;
+        gainCompensation =    false;
         % Neural Network Parameters
         xDim             =      0.0;
         yDim             =      0.0;
@@ -90,6 +91,7 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm', 'Bright', 'Sharp'},         'Layout',[3,7; 3,8], 'DisplayNameLocation', 'left'),...
             audioPluginParameter('interpolate',     'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                               'Layout',[4,7; 4,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('strength',        'DisplayName','Strength',          'Label','',   'Mapping',{'lin',  0, 1},                              'Layout',[7,5; 7,8], 'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
+            audioPluginParameter('gainCompensation','DisplayName','Compensation',      'Label','',   'Mapping',{'enum', 'Off', 'On'},                       'Layout',[10,1; 10,1], 'DisplayNameLocation', 'below', 'Style', 'checkbox'),...          
             audioPluginParameter('inputGain',       'DisplayName','In Gain',           'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,1; 7,1], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
             audioPluginParameter('outputGain',      'DisplayName','Out Gain',          'Label','dB', 'Mapping',{'pow', 1/3, -80, 12},                       'Layout',[1,2; 7,2], 'DisplayNameLocation', 'below', 'Style', 'vslider'),...
             ... % Parametric EQ Parameters 
@@ -143,6 +145,15 @@ classdef flowEQ < audioPlugin & matlab.System
         updateSecondBand  = false;
         updateThirdBand   = false;
         updateHighShelf   = false;
+
+        % Loudness compenstation
+        maxGain;
+        minGain;
+        loudnessGain;
+        timeConstant;
+        loudnessFrames;
+        preEqLoudnessMeter;
+        postEqLoudnessMeter; 
 
     end
     %----------------------------------------------------------------------
@@ -289,6 +300,9 @@ classdef flowEQ < audioPlugin & matlab.System
             % Apply input gain
             u = 10.^(plugin.inputGain/20)*u;
 
+            % measure pre EQ short-term loudness
+            [~,preEqShortTermLoudness,~,~] = plugin.preEqLoudnessMeter(u);
+
             % Apply biquad filters one-by-one only if active
             if plugin.lowShelfActive
                 [u, plugin.lowShelfState]   = filter(plugin.lowShelfb,   plugin.lowShelfa,   u, plugin.lowShelfState);
@@ -304,10 +318,40 @@ classdef flowEQ < audioPlugin & matlab.System
             end
             if plugin.highShelfActive
                 [u, plugin.highShelfState]  = filter(plugin.highShelfb,  plugin.highShelfa,  u, plugin.highShelfState);
-            end
+            end            
+            
+            % measure post EQ short-term loudness
+            [~,postEqShortTermLoudness,~,~] = plugin.postEqLoudnessMeter(u);
 
-            % Apply output gain
-            y = 10.^(plugin.outputGain/20)*u;
+            % determine loudness gain compensation
+            if plugin.gainCompensation
+                plugin.loudnessFrames = plugin.loudnessFrames + 1;
+
+                % only update the gain compensation after set number of frames
+                if plugin.loudnessFrames > plugin.timeConstant
+                    plugin.loudnessFrames = 1;
+
+                    % determine the difference between input and output loudness
+                    gainComp = mean(preEqShortTermLoudness, 'all') - mean(postEqShortTermLoudness, 'all')
+
+                    % if -Inf in loudness values set unity gain
+                    if any(isnan(gainComp))
+                        gainComp = 0.0;
+                    end
+                    % bound gain value for safety (otherwise ouch...)
+                    if gainComp > plugin.maxGain
+                        gainComp = plugin.maxGain;
+                    elseif gainComp < plugin.minGain
+                        gainComp = plugin.minGain;
+                    end
+                    plugin.loudnessGain = gainComp;
+                end
+                % Apply loudness compensation output gain
+                y = 10.^(plugin.loudnessGain/20)*u;
+            else
+                % Apply user-set output gain
+                y = 10.^(plugin.outputGain/20)*u;
+            end
             
             % ------------------------ UDP Comms --------------------------
             if coder.target('MATLAB') || plugin.udpvst
@@ -420,6 +464,15 @@ classdef flowEQ < audioPlugin & matlab.System
                                                            10.^(plugin.highShelfGain/20));
             end
             
+            % setup loudness compensation
+            plugin.loudnessGain         =   0.0;
+            plugin.timeConstant         =     4;
+            plugin.loudnessFrames       =     1;
+            plugin.maxGain              =  12.0;
+            plugin.minGain              = -12.0;
+            plugin.preEqLoudnessMeter   = loudnessMeter;
+            plugin.postEqLoudnessMeter  = loudnessMeter;
+
             % construct decoder objects
             plugin.net1d = Decoder('decoder1d.mat');
             plugin.net2d = Decoder('decoder2d.mat');
