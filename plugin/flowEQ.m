@@ -670,7 +670,12 @@ classdef flowEQ < audioPlugin & matlab.System
         %-------------------------- Mode Control --------------------------
         function set.eqMode(plugin, val)
             plugin.eqMode = val;
-            setUpdateAutoEqState(plugin, true);
+            plugin.eqMode = val;
+            if plugin.eqMode == OperatingMode.manual
+                fullFilterReset(plugin)
+            else
+                setUpdateAutoEqState(plugin, true);
+            end
         end
         function val = get.eqMode(plugin)
             val = plugin.eqMode;
