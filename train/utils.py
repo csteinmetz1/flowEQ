@@ -400,7 +400,10 @@ def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
         # unpack samples and associated category labels
         samples, labels, classes = data
 
-        colors = ["#21313E", "#53A976"] # "#20575F", "#268073", ", "#98CF6F", 
+        if len(classes) > 2:
+            colors = ["#003f5c", "#444e86", "#955196", "#dd5182", "#ff6e54", "#ffa600"]
+        else:
+            colors = ["#444e86", "#ff6e54"]
 
         if variational:
             z_mean, _, _ = encoder.predict(samples, batch_size=8)
@@ -419,6 +422,8 @@ def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
         #plt.colorbar()
         plt.xlabel("z[0]")
         plt.ylabel("z[1]")
+        plt.xlim([-4, 4])
+        plt.ylim([-4, 4])
     
         if to_file:
             fig2.savefig(to_file + "2.png")
