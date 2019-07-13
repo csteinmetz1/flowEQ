@@ -410,7 +410,7 @@ def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
         fig2, ax = plt.subplots(figsize=(12, 10))
 
         for descriptor_class, descriptor_index in classes.items():
-            class_samples = z_mean[np.where(labels == descriptor_index)]
+            class_samples = z_mean[np.where(labels == descriptor_index)[0]]
             scatter = ax.scatter(class_samples[:,0], class_samples[:,1], c=colors[descriptor_index], label=descriptor_class)
 
         plt.legend()

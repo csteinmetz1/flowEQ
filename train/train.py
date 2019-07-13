@@ -45,15 +45,30 @@ print("Traing labels  : ", y_train.shape)
 print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
-#autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
-autoencoder, encoder, decoder = build_single_layer_autoencoder(2, x_train.shape[1])
+# KL annealing (β) setup
+beta = K.variable(0.0)
+klstart = 100
+annealtime = 100
 
+class kl_annealing_callback(tf.keras.callbacks.Callback):
+    def __init__(self, beta):
+        self.beta = beta
+
+    def on_epoch_end(self, epoch, logs={}):
+        if epoch > klstart:
+            new_beta = min(K.get_value(self.beta) + (1./ annealtime), 1.)
+            K.set_value(self.beta, new_beta)
+        print ("Current KL Weight is " + str(K.get_value(self.beta)))
+
+
+#autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
+autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1], beta)
 
 def make_plots(epoch, logs):
-    if (epoch+1) % 100 == 0:
+    if (epoch+1) % 10 == 0:
         
         z = encoder.predict(x_test[:1,:])
-        x_test_hat = decoder.predict(z)
+        x_test_hat = decoder.predict(z[2])
       
         # make directory for current epoch
         #epoch_dir = os.path.join(logdir, f"epoch{epoch+1}")
@@ -69,14 +84,13 @@ def make_plots(epoch, logs):
         labels = eq_df['descriptor'][800:].map(d, na_action='ignore').values
         models = (encoder, decoder)
         data = (x_test, labels, d)
-        plot_2d_manifold(models, data=data, dim=15, variational=False, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
+        plot_2d_manifold(models, data=data, dim=15, variational=True, to_file=os.path.join(logdir,f"2d_manifold_{epoch+1}_"))
 
         #file_writer = tf.summary.create_file_writer(logdir) 
         #with file_writer.as_default():
         #    compare_plot = tf.image.decode_png(buf.getvalue(), channels=0)
         #    compare_plot = tf.expand_dims(compare_plot, 0)
         #    tf.summary.image("Reconstruction", compare_plot, step=epoch+1)
-
 
 # tensorboard logging setup
 logdir="logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -89,7 +103,7 @@ autoencoder.fit(x_train, x_train,
                 validation_data=(x_test,x_test),
                 batch_size=8, 
                 epochs=1000,
-                callbacks=[tensorboard_callback, plotting_callback],
+                callbacks=[tensorboard_callback, plotting_callback, kl_annealing_callback(beta)],
                 verbose=True)
 
 autoencoder.save_weights('../models/vae2d_10000epochs.h5', save_format='h5')

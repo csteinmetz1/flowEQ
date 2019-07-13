@@ -105,7 +105,7 @@ def build_multiple_layer_autoencoder(latent_dim, input_shape):
 
     return autoencoder, encoder, decoder
 
-def build_single_layer_variational_autoencoder(latent_dim, input_shape):
+def build_single_layer_variational_autoencoder(latent_dim, input_shape, beta):
     """
     Construct a simple single layer variational autoencoder.
 
@@ -116,8 +116,6 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     10 -> 
 
     """
-    
-    beta = 0.001
 
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
@@ -143,12 +141,11 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape):
     outputs = decoder(encoder(inputs)[2])
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    # construct loss function
+    # construct loss functions
     def vae_loss(y_true, y_pred):
-        recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = beta * 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
-        #kl_loss = K.print_tensor(kl_loss[0])
-        return K.mean(recon + kl_loss)
+        reconstruciton_loss = (losses.mean_absolute_error(inputs, outputs) / input_shape)
+        kl_loss = (0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1)) / latent_dim
+        return reconstruciton_loss + (beta * kl_loss)
 
     autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
     autoencoder.summary()
