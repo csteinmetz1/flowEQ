@@ -55,11 +55,12 @@ if __name__ == '__main__':
 	eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_col=0)
 	count = pd.read_csv("../data/safe/descriptors.csv", sep=",", index_col=0)
 
-	# only use data points within the top 20 occuring descriptors
+	# only use data points within the top 2 occuring descriptors
 	descriptors = count.loc[0:1, 'descriptor'].tolist()
 	eq_df = eq_params[eq_params['descriptor'].isin(descriptors)]
 
 	codes = generate(eq_df, descriptors, args.arch, args.weights)
+	print(codes)
 	sio.savemat('../plugin/assets/codes.mat', {'codes' : codes})
 
 	
