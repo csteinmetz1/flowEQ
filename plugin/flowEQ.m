@@ -8,7 +8,7 @@ classdef flowEQ < audioPlugin & matlab.System
         net3d;  % three dimensional latent space model
         
         % latent space embeddings for semantic descriptors
-        %codes = struct2cell(load('codes.mat', 'codes'));
+        codes = load('codes.mat', 'codes');
                         
         udpvst = false; % set to this true if you want VST with UDP support
         udpsend;        % UDP sender object to be used
@@ -176,22 +176,12 @@ classdef flowEQ < audioPlugin & matlab.System
                     y = plugin.yDim;
                     z = plugin.zDim;
                 elseif plugin.eqMode == OperatingMode.semantic
-%                     A = plugin.codes{1}{plugin.latentDim}{plugin.firstTerm};
-%                     B = plugin.codes{1}{plugin.latentDim}{plugin.secondTerm};
-%                     latentCode = A + (plugin.interpolate * (B - A));
-%                     if     (plugin.latentDim) == 1
-%                         x = latentCode(1);
-%                         y = 0;
-%                         z = 0;
-%                     elseif (plugin.latentDim) == 2
-%                         x = latentCode(1);
-%                         y = latentCode(2);
-%                         z = 0;      
-%                     elseif (plugin.latentDim) == 3
-%                         x = latentCode(1);
-%                         y = latentCode(2);
-%                         z = latentCode(3);
-%                     end
+                    A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, plugin.firstTerm, :), 3, 1);
+                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, plugin.secondTerm, :), 3, 1);
+                    latentCode = A + (plugin.interpolate * (B - A));
+                    x = latentCode(1);
+                    y = latentCode(2);
+                    z = latentCode(3);
                 end
 
                 % extend the area of the latent space that is reachable
