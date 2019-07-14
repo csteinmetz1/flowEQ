@@ -44,9 +44,9 @@ print("Testing labels : ", y_test.shape)
 
 # KL annealing (β) setup
 beta = K.variable(0.0)
-beta_max = 0.015
-klstart = 100
-annealtime = 10000
+beta_max = 0.01
+klstart = 50
+annealtime = 5000
 
 class kl_annealing_callback(tf.keras.callbacks.Callback):
     def __init__(self, beta):
@@ -58,11 +58,11 @@ class kl_annealing_callback(tf.keras.callbacks.Callback):
             K.set_value(self.beta, new_beta)
         print ("Current KL Weight is " + str(K.get_value(self.beta)))
 
-#autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1])
-autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(2, x_train.shape[1], beta)
+latent_dim = 2
+autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(latent_dim, x_train.shape[1], beta)
 
 def make_plots(epoch, logs):
-    if (epoch+1) % 100 == 0:
+    if (epoch+1) % 10 == 0:
         
         z = encoder.predict(x_test[:1,:])
         x_test_hat = decoder.predict(z[2])
@@ -81,7 +81,8 @@ def make_plots(epoch, logs):
         labels = eq_df['descriptor'][:train_set].map(classes, na_action='ignore').values
         models = (encoder, decoder)
         data = (x_train, labels, classes)
-        plot_2d_manifold(models, data=data, dim=15, variational=True, to_file=os.path.join(logdir,"plots",f"2d_manifold_{epoch+1}_"))
+        plot_manifold(models, dim=latent_dim, data=data, size=15, variational=True,
+                      to_file=os.path.join(logdir,"plots",f"{latent_dim}d_manifold_{epoch+1}_"))
 
         #file_writer = tf.summary.create_file_writer(logdir) 
         #with file_writer.as_default():
@@ -108,7 +109,7 @@ autoencoder.fit(x_train, x_train,
                 shuffle=True,
                 validation_data=(x_test,x_test),
                 batch_size=8, 
-                epochs=1000,
+                epochs=200,
                 callbacks=[tensorboard_callback, plotting_callback, kl_annealing_callback(beta)],
                 verbose=True)
 

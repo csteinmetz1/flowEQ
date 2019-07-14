@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy import signal as sg
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import ticker
 from nltk.stem import PorterStemmer
 
@@ -351,32 +352,33 @@ def plot_examples(data, filename):
     plt.tight_layout()
     plt.savefig(filename)
 
-def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
-    """Display a 2D manifold of EQ transfer functions.
+def plot_manifold(models, dim=2, size=15, data=None, variational=True, to_file=None, file_type='png'):
+    """Display a manifold of EQ transfer functions.
 
     Creates an array of subplots that is dim x dim in size. 
     There are two modes of operation. If no data is passed (default),
-    then linearly spaced 2D coordinates are passed to the decoder
+    then linearly spaced coordinates are passed to the decoder
     to generate the plot. If data is passed, then these data points
     are passed through the encoder and their latent representations
-    are plotted in 2D space. Including labels (categorical encoding) will 
+    are plotted in n dimensional space. Including labels (categorical encoding) will 
     allow for proper color coding of plotted samples.
 
     Args:
         models  (tuple) : Encoder and decoder models objects.
-        dim     (int)   : Dimensions of the manifold (dim x dim).
+        dim     (int)   : Size of the latent dimension (code size)
+        size    (int)   : Dimensions of the manifold (dim x dim).
         data    (tuple) : Sample and label arrays.
         to_file (str)   : Optional string of filepath for saving figure.
                           Just show the figure otherwise.
     """
 
-    if models:
-        # unpack (trained) models
-        encoder, decoder = models
+    # unpack (trained) models
+    encoder, decoder = models
 
+    if dim == 2:
         # linearly spaced coordinates corresponding to the 2D plot
-        grid_x = np.linspace(-2, 2, dim)
-        grid_y = np.linspace(-2, 2, dim)[::-1]
+        grid_x = np.linspace(-2, 2, size)
+        grid_y = np.linspace(-2, 2, size)[::-1]
 
         # create new square figure
         fig1 = plt.figure(figsize=(10, 10))
@@ -384,15 +386,38 @@ def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
         # iterate over points in 2D space, plot tf at each point
         for i, yi in enumerate(grid_y):
             for j, xi in enumerate(grid_x):
-                subplot_idx = (i*dim) + j + 1
+                subplot_idx = (i*size) + j + 1
                 z_sample = np.array([[xi, yi]])
                 x_decoded = decoder.predict(z_sample)
                 x = x_decoded[0].reshape(13,)
-                ax = plt.subplot(dim, dim, subplot_idx)
+                ax = plt.subplot(size, size, subplot_idx)
                 subplot_tf(x, 44100, ax, denorm=True)
 
         if to_file:
-            fig1.savefig(to_file + "1.png")
+            fig1.savefig(to_file + "1." + file_type)
+
+        plt.close()
+
+    elif dim == 1:
+        # linearly spaced coordinates corresponding to the 2D plot
+        grid_x = np.linspace(-2, 2, size)
+
+        # create new square figure
+        fig1 = plt.figure(figsize=(10, 1))
+
+        # iterate over points in 2D space, plot tf at each point
+        for j, xi in enumerate(grid_x):
+            subplot_idx = j + 1
+            z_sample = np.array([[xi]])
+            x_decoded = decoder.predict(z_sample)
+            x = x_decoded[0].reshape(13,)
+            ax = plt.subplot(1, size, subplot_idx)
+            subplot_tf(x, 44100, ax, denorm=True)
+
+        plt.tight_layout()
+        
+        if to_file:
+            fig1.savefig(to_file + "1." + file_type)
 
         plt.close()
 
@@ -410,23 +435,47 @@ def plot_2d_manifold(models, dim=15, data=None, variational=True, to_file=None):
         else:
             z_mean = encoder.predict(samples, batch_size=8)
 
-        fig2, ax = plt.subplots(figsize=(12, 10))
+        if dim == 3:
+            fig2 = plt.figure(figsize=(12, 10))
+            ax = fig2.add_subplot(111, projection='3d')
+        elif dim == 2:
+            fig2, ax = plt.subplots(figsize=(12, 10))
+        else:
+            fig2, ax = plt.subplots(figsize=(12, 3))
 
         for descriptor_class, descriptor_index in classes.items():
             class_samples = z_mean[np.where(labels == descriptor_index)[0]]
-            scatter = ax.scatter(class_samples[:,0], class_samples[:,1], c=colors[descriptor_index], label=descriptor_class)
+            if   dim == 1:
+                scatter = ax.scatter(class_samples[:,0], (np.ones(class_samples[:,0].shape) * descriptor_index)/4, c=colors[descriptor_index], label=descriptor_class)
+            elif dim == 2:
+                scatter = ax.scatter(class_samples[:,0], class_samples[:,1], c=colors[descriptor_index], label=descriptor_class)
+            else:
+                scatter = ax.scatter(class_samples[:,0], class_samples[:,1], class_samples[:,2], c=colors[descriptor_index], label=descriptor_class)
 
         plt.legend()
-        #legend1 = ax.legend(*scatter.legend_elements(), loc="lower left", title="Classes")
-        #ax.add_artist(legend1)
-        #plt.colorbar()
-        plt.xlabel("z[0]")
-        plt.ylabel("z[1]")
-        plt.xlim([-4, 4])
-        plt.ylim([-4, 4])
+
+        if   dim == 3:
+            plt.xlabel("z[0]")
+            plt.ylabel("z[1]")
+            plt.ylabel("z[2]")
+            ax.set_xlim([-4, 4])
+            ax.set_ylim([-4, 4])
+            ax.set_zlim([-4, 4])
+        elif dim == 2:
+            plt.xlabel("z[0]")
+            plt.ylabel("z[1]")
+            plt.xlim([-4, 4])
+            plt.ylim([-4, 4])
+        else:
+            plt.xlabel("z[0]")
+            plt.xlim([-4, 4])
+            plt.ylim([-0.25, 0.5])
+            ax.set_yticklabels([])
+
+        plt.tight_layout()
     
         if to_file:
-            fig2.savefig(to_file + "2.png")
+            fig2.savefig(to_file + "2." + file_type)
 
         plt.close()
 
