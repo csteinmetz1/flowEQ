@@ -208,11 +208,11 @@ classdef flowEQ < audioPlugin & matlab.System
                         x_hat = plugin.net1d{plugin.disentanglement}.predict([x]);
                     case LatentDim.two
                         x_hat = plugin.net2d{plugin.disentanglement}.predict([x y]);
-                    case LatentDim.three
+                    otherwise 
                         x_hat = plugin.net3d{plugin.disentanglement}.predict([x y z]);
                 end 
                 
-                x_hat = plugin.net1d{1}.denormalize(x_hat);    % denormalize 1x13 param vector
+                x_hat = plugin.net1d{1}.denormalize(x_hat); % denormalize 1x13 param vector
                 plugin.storeEqState(x_hat);                 % update autoEqState to match new params
                 plugin.fullFilterReset();                   % request coefficient update for all filters
                 setUpdateAutoEqState(plugin, false);        % turn the param update flag off (we are done)
@@ -487,9 +487,9 @@ classdef flowEQ < audioPlugin & matlab.System
             plugin.postEqLoudnessMeter  = loudnessMeter;
 
             % construct decoder objects ( try to do this programatically )
-            plugin.net1d = {Decoder('vae1d_beta_0.000.mat'),Decoder('vae1d_beta_0.001.mat'),Decoder('vae1d_beta_0.010.mat'),Decoder('vae1d_beta_0.150.mat')}
-            plugin.net2d = {Decoder('vae2d_beta_0.000.mat'),Decoder('vae2d_beta_0.001.mat'),Decoder('vae2d_beta_0.010.mat'),Decoder('vae2d_beta_0.150.mat')}
-            plugin.net3d = {Decoder('vae3d_beta_0.000.mat'),Decoder('vae3d_beta_0.001.mat'),Decoder('vae3d_beta_0.010.mat'),Decoder('vae3d_beta_0.150.mat')}
+            plugin.net1d = {Decoder('vae1d_beta_0.000.mat'),Decoder('vae1d_beta_0.001.mat'),Decoder('vae1d_beta_0.010.mat'),Decoder('vae1d_beta_0.150.mat')};
+            plugin.net2d = {Decoder('vae2d_beta_0.000.mat'),Decoder('vae2d_beta_0.001.mat'),Decoder('vae2d_beta_0.010.mat'),Decoder('vae2d_beta_0.150.mat')};
+            plugin.net3d = {Decoder('vae3d_beta_0.000.mat'),Decoder('vae3d_beta_0.001.mat'),Decoder('vae3d_beta_0.010.mat'),Decoder('vae3d_beta_0.150.mat')};
             
             if coder.target('MATLAB') || plugin.udpvst
                 % setup UDP sender for comm with DAW
