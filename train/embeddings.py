@@ -8,6 +8,7 @@ import sys
 import glob
 import argparse
 from datetime import datetime
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,7 @@ import matplotlib.pyplot as plt
 from models import *
 from utils import *
 
-def generate(data, descriptors, arch, weights):
+def generate(data, descriptors, arch, weights, samples=3):
 
 	# model reconstruction from JSON file
 	with open(arch, 'r') as f:
@@ -33,16 +34,21 @@ def generate(data, descriptors, arch, weights):
 	x = np.array(data.values[:,1:])
 	a = encoder.predict(x, batch_size=8)
 	z_mean, _, _ = encoder.predict(x, batch_size=8)
-	
-	classes = {b: a for a, b in enumerate(set(descriptors))}
+	dim = z_mean.shape[1]
+
+	classes = OrderedDict({b: a for a, b in enumerate(set(descriptors))})
 	labels = data['descriptor'].map(classes, na_action='ignore').values
 
-	codes = {}
+	codes = OrderedDict({})
 
 	for descriptor_class, descriptor_index in classes.items():
 		class_samples = z_mean[np.where(labels == descriptor_index)[0]]
 		mean_code = np.mean(class_samples, axis=0)
-		codes[descriptor_class] = mean_code
+		stddev_code = np.std(class_samples, axis=0)
+
+		for s in np.arange(samples):
+			factor = np.random.choice([-2, -1, 0, 1, 2], replace=False)
+			codes[f"{dim}d_{descriptor_class}{s+1}"] = mean_code + (factor * stddev_code)
 
 	return codes
 	
@@ -64,10 +70,9 @@ if __name__ == '__main__':
 	models = glob.glob(os.path.join(args.modeldir, "*.h5"))
 
 	# codes dictionary
-	#codes = {"d1" : {}, "d2" : {}, "d3" : {}}
-	codes = np.empty([3,4,2,3])
+	codes = np.empty([3,4,6,3])
 
-	for model in models:
+	for model in sorted(models):
 		w = model
 		a = model.replace('.h5', '.json')
 
@@ -86,9 +91,10 @@ if __name__ == '__main__':
 		c = generate(eq_df, descriptors, a, w)
 
 		for idx, (key, val) in enumerate(c.items()):
+			print(idx, key, beta, val)
 			code = np.zeros(3)
 			code[:val.shape[0]] = val
-			print(code)
+			#print(code)
 			codes[dim-1][beta-1][idx] = code
 
 	sio.savemat('../plugin/assets/codes.mat', {'codes' : codes})	

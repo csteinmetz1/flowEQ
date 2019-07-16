@@ -27,9 +27,9 @@ classdef flowEQ < audioPlugin & matlab.System
         zDim             =      0.0;
         interpolate      =      0.0;
         strength         =      1.0;
-        secondTerm       =  Semantic.warm;
+        firstTerm        =  Semantic.one;
+        secondTerm       =  Semantic.one;
         latentDim        =  LatentDim.two;
-        firstTerm        =  Semantic.warm;
         eqMode           =  OperatingMode.traverse;
         disentanglement  =  DisentangleControl.some;
         extend           =    false;
@@ -90,8 +90,8 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('yDim',            'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[3,4; 3,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('zDim',            'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[4,4; 4,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('extend',          'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'Off', 'On'},                     'Layout',[5,5; 5,5],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm','Bright','Sharp'},         'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm','Bright','Sharp'},         'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm 1','Warm 2','Warm 3'},      'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Bright 1','Bright 2','Bright 3'},'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('interpolate',     'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[4,7; 4,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('disentanglement', 'DisplayName','Beta',              'Label','',   'Mapping',{'enum', 'None','Less', 'Some', 'More'},   'Layout',[6,7; 6,7],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('strength',        'DisplayName','Strength',          'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[7,5; 7,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...           
@@ -176,8 +176,10 @@ classdef flowEQ < audioPlugin & matlab.System
                     y = plugin.yDim;
                     z = plugin.zDim;
                 elseif plugin.eqMode == OperatingMode.semantic
-                    A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, plugin.firstTerm, :), 3, 1);
-                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, plugin.secondTerm, :), 3, 1);
+                    aIdx = plugin.firstTerm;
+                    bIdx = plugin.secondTerm;
+                    A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, aIdx, :), 3, 1)
+                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx + 3, :), 3, 1)
                     latentCode = A + (plugin.interpolate * (B - A));
                     x = latentCode(1);
                     y = latentCode(2);
@@ -659,6 +661,20 @@ classdef flowEQ < audioPlugin & matlab.System
         end
         function val = get.strength(plugin)
             val = plugin.strength;
+        end
+        function set.firstTerm(plugin, val)
+            plugin.firstTerm = val;
+            setUpdateAutoEqState(plugin, true);
+        end
+        function val = get.firstTerm(plugin)
+            val = plugin.firstTerm;
+        end
+        function set.secondTerm(plugin, val)
+            plugin.secondTerm = val;
+            setUpdateAutoEqState(plugin, true);
+        end
+        function val = get.secondTerm(plugin)
+            val = plugin.secondTerm;
         end
         function set.interpolate(plugin, val)
             plugin.interpolate = val;
