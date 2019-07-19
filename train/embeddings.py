@@ -22,14 +22,7 @@ import matplotlib.pyplot as plt
 from models import *
 from utils import *
 
-def generate(data, descriptors, arch, weights, visualize=False):
-
-	# model reconstruction from JSON file
-	with open(arch, 'r') as f:
-		encoder = model_from_json(f.read())
-
-	# load weights into the new model
-	encoder.load_weights(weights)
+def generate(data, descriptors, encoder, decoder, classifier=True, visualize=False):
 
 	# generate embeddings for data points
 	x = np.array(data.values[:,1:])
@@ -40,18 +33,32 @@ def generate(data, descriptors, arch, weights, visualize=False):
 	classes = OrderedDict({b: a for a, b in enumerate(set(descriptors))})
 	labels = data['descriptor'].map(classes, na_action='ignore').values
 
-	# create linear classifier
-	clf = SGDClassifier()
-	clf.fit(z_mean, labels)
-
 	codes = OrderedDict({})
 
 	for descriptor_class, descriptor_index in classes.items():
 		class_samples = z_mean[np.where(labels == descriptor_index)[0]]
 
-		for factor in [1, 2, 3]:
-			codes[f"{dim}d_{descriptor_class}{factor+1}"] = (-(1/clf.coef_) * factor) + clf.intercept_
-			
+		if classifier:
+			# create linear classifier
+			clf = SGDClassifier()
+			clf.fit(z_mean, labels)
+
+			for factor in [0.5, 1, 2]:
+				code = -(clf.intercept_[0]/clf.coef_[0]) + factor
+				if clf.predict([code]) != descriptor_index:
+					code = -(clf.intercept_[0]/clf.coef_[0]) - factor
+				codes[f"{dim}d_{descriptor_class}{factor+1}"] = code
+
+				x = denormalize_params(decoder.predict(np.array([code])))[0]
+				plot_filename = os.path.join("plots", "embeddings", f"{code}.png")
+				plot_tf(x, plot_title=f"{dim}d_{descriptor_class}{factor+1}", to_file=plot_filename)
+		else:
+			for factor in np.arange(0,3):
+				code_idx = np.random.choice(class_samples.shape[0])
+				code = class_samples[code_idx,:]
+				codes[f"{dim}d_{descriptor_class}{factor+1}"] = code
+				print(code)
+
 	if visualize:
 
 		colors = ["#444e86", "#ff6e54", "#dd5182", "#955196"]
@@ -77,20 +84,26 @@ def generate(data, descriptors, arch, weights, visualize=False):
 									c=colors[descriptor_index], label=descriptor_class)         
 		
 		for idx, (descriptor_class, code) in enumerate(codes.items()):
+
+			if idx < 3:
+				c_offset = 0
+			else:
+				c_offset = 1
+
 			if dim == 3:
 				scatter = ax.scatter(code[0], code[1], code[2],
-									c=colors[3], label=descriptor_class)
+									c=colors[2+c_offset], label=descriptor_class)
 			elif dim == 2:
 				scatter = ax.scatter(code[0], code[1], 
-									c=colors[3], label=descriptor_class)
+									c=colors[2+c_offset], label=descriptor_class)
 			else:
 				scatter = ax.scatter(code[0], 0,
-									c=colors[3], label=descriptor_class)         
+									c=colors[2+c_offset], label=descriptor_class)         
 
 		plt.show()       
 
 	return codes
-	
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Generate average latent codes for semantic descriptors.')
 	parser.add_argument('modeldir', type=str, help='path directory containing all model files')
@@ -106,17 +119,36 @@ if __name__ == '__main__':
 	eq_df = eq_params[eq_params['descriptor'].isin(descriptors)]
 
 	# get models
-	models = glob.glob(os.path.join(args.modeldir, "*.h5"))
+	encoder_models = glob.glob(os.path.join(args.modeldir, 'encoders', "*.h5"))
+	decoder_models = glob.glob(os.path.join(args.modeldir, 'decoders', "*.h5"))
 
 	# codes dictionary
 	codes = np.empty([3,4,6,3])
 
-	for model in sorted(models):
-		w = model
-		a = model.replace('.h5', '.json')
+	for encoder_model, decoder_model in zip(sorted(encoder_models), sorted(decoder_models)):
 
-		dim  = int(os.path.basename(w)[7])
-		beta_max = float(os.path.basename(w)[15:20])
+		encoder_w = encoder_model
+		encoder_a = encoder_model.replace('.h5', '.json')
+
+		# model reconstruction from JSON file
+		with open(encoder_a, 'r') as f:
+			encoder = model_from_json(f.read())
+
+		# load weights into the new model
+		encoder.load_weights(encoder_w)
+
+		decoder_w = decoder_model
+		decoder_a = decoder_model.replace('.h5', '.json')
+
+		# model reconstruction from JSON file
+		with open(decoder_a, 'r') as f:
+			decoder = model_from_json(f.read())
+
+		# load weights into the new model
+		decoder.load_weights(decoder_w)
+
+		dim  = int(os.path.basename(encoder_w)[7])
+		beta_max = float(os.path.basename(encoder_w)[15:20])
   
 		if   np.isclose(beta_max, 0.02):
 			beta = 4
@@ -127,7 +159,7 @@ if __name__ == '__main__':
 		elif np.isclose(beta_max, 0.000):
 			beta = 1
 
-		c = generate(eq_df, descriptors, a, w)
+		c = generate(eq_df, descriptors, encoder, decoder)
 
 		for idx, (key, val) in enumerate(c.items()):
 			code = np.zeros(3)
