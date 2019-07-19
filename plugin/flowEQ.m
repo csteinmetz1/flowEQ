@@ -90,8 +90,8 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('yDim',            'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[3,4; 3,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('zDim',            'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[4,4; 4,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('extend',          'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'Off', 'On'},                     'Layout',[5,5; 5,5],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Bright 1','Bright 2','Bright 3'},'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm 1','Warm 2','Warm 3'},      'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm 1','Warm 2','Warm 3'},      'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Bright 1','Bright 2','Bright 3'},'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('interpolate',     'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[4,7; 4,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('disentanglement', 'DisplayName','Beta',              'Label','',   'Mapping',{'enum', 'None','Less', 'Some', 'More'},   'Layout',[6,7; 6,7],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('strength',        'DisplayName','Strength',          'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[7,5; 7,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...           
@@ -178,6 +178,11 @@ classdef flowEQ < audioPlugin & matlab.System
                 elseif plugin.eqMode == OperatingMode.semantic
                     aIdx = plugin.firstTerm;
                     bIdx = plugin.secondTerm;
+
+                    plugin.latentDim
+                    plugin.disentanglement
+                    aIdx
+
                     A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, aIdx, :), 3, 1)
                     B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx + 3, :), 3, 1)
                     latentCode = A + (plugin.interpolate * (B - A));
@@ -479,9 +484,9 @@ classdef flowEQ < audioPlugin & matlab.System
             plugin.postEqLoudnessMeter  = loudnessMeter;
 
             % construct decoder objects ( try to do this programatically )
-            plugin.net1d = {Decoder('vae1d_beta_0.000.mat'),Decoder('vae1d_beta_0.001.mat'),Decoder('vae1d_beta_0.010.mat'),Decoder('vae1d_beta_0.150.mat')};
-            plugin.net2d = {Decoder('vae2d_beta_0.000.mat'),Decoder('vae2d_beta_0.001.mat'),Decoder('vae2d_beta_0.010.mat'),Decoder('vae2d_beta_0.150.mat')};
-            plugin.net3d = {Decoder('vae3d_beta_0.000.mat'),Decoder('vae3d_beta_0.001.mat'),Decoder('vae3d_beta_0.010.mat'),Decoder('vae3d_beta_0.150.mat')};
+            plugin.net1d = {Decoder('vae1d_beta_0.0000.mat'),Decoder('vae1d_beta_0.0010.mat'),Decoder('vae1d_beta_0.0100.mat'),Decoder('vae1d_beta_0.0200.mat')};
+            plugin.net2d = {Decoder('vae2d_beta_0.0000.mat'),Decoder('vae2d_beta_0.0010.mat'),Decoder('vae2d_beta_0.0100.mat'),Decoder('vae2d_beta_0.0200.mat')};
+            plugin.net3d = {Decoder('vae3d_beta_0.0000.mat'),Decoder('vae3d_beta_0.0010.mat'),Decoder('vae3d_beta_0.0100.mat'),Decoder('vae3d_beta_0.0200.mat')};
             
             if coder.target('MATLAB') || plugin.udpvst
                 % setup UDP sender for comm with DAW
