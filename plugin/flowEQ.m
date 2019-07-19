@@ -75,7 +75,7 @@ classdef flowEQ < audioPlugin & matlab.System
             'OutputChannels',2,...
             'PluginName','flowEQ',...
             'VendorName','Christian Steinmetz',...
-            'VendorVersion','0.6.1',...
+            'VendorVersion','0.9.0',...
             ... % GUI Configuration
             audioPluginGridLayout('RowHeight',[25 25 25 25 25 25 25 25 25 60 25 60 25 60 25],...
                                   'ColumnWidth',[70 70 60 100 100 100 100 100],...
@@ -163,12 +163,12 @@ classdef flowEQ < audioPlugin & matlab.System
     % public methods
     %----------------------------------------------------------------------
     methods(Access = protected)
-        function y = stepImpl(plugin,u)
+        function out = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
-            if plugin.updateAutoEqState && plugin.eqMode ~= OperatingMode.manual
+            % initialize temporary latent vector values 
+            x = 0; y = 0; z = 0;
 
-                % initialize temporary latent vector values 
-                x = 0; y = 0; z = 0;
+            if plugin.updateAutoEqState && plugin.eqMode ~= OperatingMode.manual
                 
                 % determine latent code based on operating mode
                 if plugin.eqMode == OperatingMode.traverse
@@ -176,15 +176,10 @@ classdef flowEQ < audioPlugin & matlab.System
                     y = plugin.yDim;
                     z = plugin.zDim;
                 elseif plugin.eqMode == OperatingMode.semantic
-                    aIdx = plugin.firstTerm;
-                    bIdx = plugin.secondTerm;
-
-                    plugin.latentDim
-                    plugin.disentanglement
-                    aIdx
-
-                    A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, aIdx, :), 3, 1)
-                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx + 3, :), 3, 1)
+                    aIdx = cast(plugin.firstTerm,'int8');
+                    bIdx = cast(plugin.secondTerm,'int8');
+                    A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, aIdx, :), 3, 1);
+                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx + 3, :), 3, 1);
                     latentCode = A + (plugin.interpolate * (B - A));
                     x = latentCode(1);
                     y = latentCode(2);
@@ -339,6 +334,7 @@ classdef flowEQ < audioPlugin & matlab.System
                     if any(isnan(gainComp))
                         gainComp = 0.0;
                     end
+
                     % bound gain value for safety (otherwise ouch...)
                     if     plugin.gainRange == GainRange.low
                         minGain = -6.0;
@@ -350,6 +346,7 @@ classdef flowEQ < audioPlugin & matlab.System
                         minGain = -24.0;
                         maxGain =  24.0;
                     end
+                    
                     if gainComp > maxGain 
                         gainComp = maxGain;
                     elseif gainComp < minGain
@@ -360,10 +357,10 @@ classdef flowEQ < audioPlugin & matlab.System
                     plugin.loudnessGain = gainComp;
                 end
                 % Apply loudness compensation output gain
-                y = 10.^(plugin.loudnessGain/20)*u;
+                out = 10.^(plugin.loudnessGain/20)*u;
             else
                 % Apply user-set output gain
-                y = 10.^(plugin.outputGain/20)*u;
+                out = 10.^(plugin.outputGain/20)*u;
             end
             
             % ------------------------ UDP Comms --------------------------
@@ -405,10 +402,9 @@ classdef flowEQ < audioPlugin & matlab.System
                          plugin.highShelfGain...
                          plugin.highShelfFreq];
                 end
-                 
-                z = [plugin.xDim plugin.yDim plugin.zDim];
-                dim = str2double(plugin.latentDim);
-                plugin.udpsend([b, a, p, z, dim])
+                code = [x, y, z];
+                dim  = cast(plugin.latentDim, 'int8');
+                plugin.udpsend([b, a, p, code, dim])
             end
         end
         
@@ -690,7 +686,6 @@ classdef flowEQ < audioPlugin & matlab.System
         end
         %-------------------------- Mode Control --------------------------
         function set.eqMode(plugin, val)
-            plugin.eqMode = val;
             plugin.eqMode = val;
             if plugin.eqMode == OperatingMode.manual
                 fullFilterReset(plugin)
