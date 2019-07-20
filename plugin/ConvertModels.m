@@ -11,13 +11,13 @@ function ConvertModels(modeldir)
 %   See also LoadModel 
 
 % get filenames for all .h5 model weights
-models = dir(fullfile(modeldir,'*.h5'));
+models = dir(fullfile(modeldir,'autoencoders','*.h5'));
 
 fprintf('Found %d models in %s\n', length(models), modeldir)
 
 % load each set of model weights
 for i=1:length(models)
-    h5path  = fullfile(modeldir, models(i).name);
+    h5path  = fullfile(modeldir, 'autoencoders', models(i).name);
     matpath = fullfile('assets', strrep(models(i).name, '.h5', '.mat')); 
     LoadModel(h5path, matpath);
 end

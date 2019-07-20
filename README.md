@@ -8,8 +8,8 @@ flowEQ presents a new way to navigate equalization in the music production proce
 
 - [Overview](#overview)
 - [Setup](#setup)
-    - [VST](#vst)
     - [MATLAB](#matlab)
+    - [Training](#training)
 - [Controls](#controls)
 - [Visualizer](#visualizer)
 - [Theory](#theory)
@@ -25,19 +25,24 @@ flowEQ presents a new way to navigate equalization in the music production proce
 
 ## Setup
 
-There are two options to install the plugin. 
-You can either install the VST/AU plugin compiled for your platform or use MATLAB (along with the [Audio Toolbox](https://www.mathworks.com/products/audio.html))
-to compile the plugin yourself for your platform. 
-
-### Binaries
-
 Pre-compiled binaries are available on my [website](https://christiansteinmetz.com). Just download the one for your platform and add it to the system directory designed for audio plugins.
 Restarting your DAW or forcing it to re-scan the audio plugin directories should make it appear. 
+
+```
+Windows
+VST3: ​C:\Program Files\Common Files\VST3
+
+macOS
+AU: ​Macintosh HD/Library/Audio/Plug-Ins/Components
+VST3: ​Macintosh HD/Library/Audio/Plug-Ins/VST3
+```
+
+Read on if you are interested in running the plugin as MATLAB code, compiling it yourself, or modifying the models. 
 
 ### MATLAB
 
 To run the plugin as MATLAB code or compile the plugin for your platform you will need to have MATLAB 2019b along with the [Audio Toolbox](https://www.mathworks.com/products/audio.html).
-Using an older version of MATLAB (not later than 2018a), but this will not include support for the customized GUI. 
+You can use an older version of MATLAB (not later than 2018a), but this will not include support for the customized GUI. 
 
 Start by cloning this repository.
 
@@ -45,11 +50,90 @@ Start by cloning this repository.
 git clone https://github.com/csteinmetz1/flowEQ.git
 ```
 
+Once you have cloned the repository, you will first need to either download the trained models or train them yourself.
+
+The easiest method is to download all of the assets needed to compile the plugin directly. 
+Simply download the latest archive from [here](https://drive.google.com/drive/folders/1xelm4m3y0iqAs_GObi_Leq7Q-rVdlP-d?usp=sharing).
+Extract this archive into a new directory `plugin/assets/`.
+
 To compile the plugin simply open MATLAB and navigate to the `plugin/` directory. 
 Run the `build.m` function from the Command Window and the process will start.
+
+```
+>> build
+```
+
 The build process takes about 60 seconds on my 2018 MacBook Pro.
 This will produce the compiled plugin in the same directory as an AudioUnit (AU) if you are on MacOS (`flowEQ.component`).
 On Windows, this will create a VST plugin (`flowEQ.vst`). 
+Running the plugin as MATLAB code is just as easy. 
+
+```
+>> run
+```
+If you are interested in training the models on your own see the steps below.
+
+### Training
+
+There are a number of steps to train the models.
+A shell script, `init.sh`, located in the `train/` directory will carry out of all this setup and training for you (macOS or Linux).
+Optionally, you can follow along with the steps outlined below.
+
+To train the models, you will first need to get the [SAFE-DB dataset](http://www.semanticaudio.co.uk/datasets/data/) (only about 4 MB).
+In this case, we only need the User Data (`SAFEEqualiserUserData.csv`) from the parametric equalizer. 
+Place this csv file in a new directory at the top level of project called `data/safe`. 
+
+Before using any of the Python scripts you need to install the dependencies.
+I recommend using a [virtual environment](https://docs.python-guide.org/dev/virtualenvs/) or similar.
+
+```
+pip install -r requirements.txt
+```
+
+Next we need to preprocess the dataset using `train/preprocess.py`. 
+
+This script performs a number of important tasks:
+
+- Add proper names to each column of the dataframe
+- Create transfer function plots for each sample in the dataset
+- Normalize each parameter value to lie between 0 and 1
+- Create a new csv file with the descriptors ranked by their frequency
+- Sort the three middle bands by their center frequencies (in ascending order)
+- Shuffle the samples before training 
+- Save all the modified data to a new file `normalized_eq_params.csv`
+
+We are now ready to train some models. 💫
+
+The main training script, `trainall.py` will load the data and then train 12 separate models.
+Each model has different hyperparameter settings and the user will be able to select these different models from within the plugin.
+You can read more about this in the [Theory](#theory) section.
+
+|         | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | 10    | 11    | 12    |
+| ------- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| Latent  | 1D    | 1D    | 1D    | 1D    | 2D    | 2D    | 2D    | 2D    | 3D    | 3D    | 3D    | 3D    |
+| β value | 0.000 | 0.001 | 0.010 | 0.020 | 0.000 | 0.001 | 0.010 | 0.020 | 0.000 | 0.001 | 0.010 | 0.020 | 
+
+After training has finished (this will probably take about an hour or so running on CPU), a new directory will be created in `models/`.
+This contains saved model architectures and weights for each of the 12 models, with separate models separated as the autoencoder, decoder, and encoder.
+Another directory contains plots of the data manifold as well as a scatter plot of the dataset projected into each latent space.
+
+With all of the models trained, the final step is to generate latent codes (embeddings) of the *warm* and *bright* descriptors for each model.
+Simply run the `embeddings.py` script with the path to the models directory generated during training.
+
+```
+python embeddings.py ../models/20190714-153626/
+```
+
+This will create a new file, `assets/codes.mat`, that contains an array of all the embeddings that will be loaded by the plugin. 
+We are now ready to build the plugin. 
+The build script will complete one final step which is to convert the hdf5 models generated by the training script using Keras to mat files that can be loaded by the plugin.
+Just pass the directory of the models 
+
+```
+>> build('../models/20190714-153626')
+```
+
+We made it. 🎉 You now have a VST or AU plugin ready to be loaded in DAW. 
 
 ## Controls
 
