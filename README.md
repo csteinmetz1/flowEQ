@@ -108,10 +108,10 @@ The main training script, `trainall.py` will load the data and then train 12 sep
 Each model has different hyperparameter settings and the user will be able to select these different models from within the plugin.
 You can read more about this in the [Theory](#theory) section.
 
-|         | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | 10    | 11    | 12    |
-| ------- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| Latent  | 1D    | 1D    | 1D    | 1D    | 2D    | 2D    | 2D    | 2D    | 3D    | 3D    | 3D    | 3D    |
-| β value | 0.000 | 0.001 | 0.010 | 0.020 | 0.000 | 0.001 | 0.010 | 0.020 | 0.000 | 0.001 | 0.010 | 0.020 | 
+| Model  | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | 10    | 11    | 12    |
+| ------ | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| Latent | 1D    | 1D    | 1D    | 1D    | 2D    | 2D    | 2D    | 2D    | 3D    | 3D    | 3D    | 3D    |
+| β      | 0.000 | 0.001 | 0.01  | 0.02  | 0.000 | 0.001 | 0.01  | 0.02  | 0.000 | 0.001 | 0.01  | 0.02  | 
 
 After training has finished (this will probably take about an hour or so running on CPU), a new directory will be created in `models/`.
 This contains saved model architectures and weights for each of the 12 models, with separate models separated as the autoencoder, decoder, and encoder.
@@ -139,7 +139,11 @@ We made it. 🎉 You now have a VST or AU plugin ready to be loaded in DAW.
 
 The EQ features three modes of operation, which are selected using the **EQ Mode** control at the top of the plugin.
 
+![Full plugin](img/full_plugin.png)
+
 ### Traverse
+
+![Traverse](img/traverse.png)
 
 The *Traverse* mode allows the user to freely investigate the latent space of the three separate models.
 In this mode the three **x**, **y**, **z** sliders can be used to traverse the latent space of the decoder.
@@ -148,7 +152,10 @@ By enabling the **Extend** mode, the limits of the sliders is extended by a fact
 This means that a slider value of *-2* will be decoded as *-4* and so forth.
 This allows for more of the latent space to be explored but may produce more strange and undesirable results.
 
+
 ### Semantic 
+
+![Semantic](img/semantic.png)
 
 This mode allows for a more controlled interface for sampling from the latent space. 
 The **x**, **y**, **z** sliders are deactivated, and the **Embedding A** and **Embedding B** comboboxes are used, along with the **Interpolate** slider. 
@@ -161,27 +168,39 @@ When set to *1*, the latent vector of B will be used as input to the decoder.
 
 ### Manual
 
+![Manual](img/manual.png)
+
 Manual mode provides the user with direct control of the five band parametric equalizer using the controls at the bottom of the plugin.
 Unfortunately, the framework does not currently provide a means to link the parameters of the manual equalizer with the decoder equalizer. 
 In a future implementation (via JUCE), the user will be able to seamlessly switch between interacting with the decoder and see those parameters
 updated in real-time on the full manual parametric equalizer below. 
 This will enable users to quickly search the latent space with the decoder for a relevant timbre and then tweak it further with the manual controls.
 
-There are also a few additional controls that allow users to more accurately tune the generate equalizer parameters.
+### Additional controls
 
-### Latent
+![Additional controls](img/control.png)
+
+#### Latent
 
 The **Latent** control allows the user to switch between models with different a different number of latent dimensions (1, 2, or 3).
 For example, with the default setting of *2*, only the **x** and **y** values will be used. 
 
-### Strength
+#### Strength
 
 This control allows the user to decrease the intensity of strength of the equalizer by simply scaling the gains for each band. 
 A **Strength** setting of *1* will result in the equalizer applied with the exact gains for each band as produced by the decoder.
 Lower this value will scale the gain values downward, making the equalizer's effect less prominent. 
 A setting of *0* will have the effect of turning all gains to *0* and therefore bypassing the equalizer all together. 
 
-### Input/Output gain
+#### β (disentanglement)
+
+#### Automatic gain compenstation
+
+![Auto gain](img/auto_gain.png)
+
+#### In/Out gain
+
+![Gain](img/gain.png)
 
 These are very straightforward controls that allow the user to adjust the level of the audio both before it enters the equalizer and after it is equalized.
 These controls prove useful when additional headroom is needed or to change the output level to match another source for comparison. 
