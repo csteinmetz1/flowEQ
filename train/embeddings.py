@@ -22,13 +22,12 @@ import matplotlib.pyplot as plt
 from models import *
 from utils import *
 
-def generate(data, descriptors, encoder, decoder, classifier=True, visualize=False):
+def generate(data, descriptors, dim, beta, encoder, decoder, classifier=True, visualize=False):
 
 	# generate embeddings for data points
 	x = np.array(data.values[:,1:])
 	a = encoder.predict(x, batch_size=8)
 	z_mean, _, _ = encoder.predict(x, batch_size=8)
-	dim = z_mean.shape[1]
 
 	classes = OrderedDict({b: a for a, b in enumerate(set(descriptors))})
 	labels = data['descriptor'].map(classes, na_action='ignore').values
@@ -51,6 +50,7 @@ def generate(data, descriptors, encoder, decoder, classifier=True, visualize=Fal
 
 				x = denormalize_params(decoder.predict(np.array([code])))[0]
 				plot_filename = os.path.join("plots", "embeddings", f"{code}.png")
+				#print(plot_filename)
 				plot_tf(x, plot_title=f"{dim}d_{descriptor_class}{factor+1}", to_file=plot_filename)
 		else:
 			for factor in np.arange(0,3):
@@ -159,11 +159,17 @@ if __name__ == '__main__':
 		elif np.isclose(beta_max, 0.000):
 			beta = 1
 
-		c = generate(eq_df, descriptors, encoder, decoder)
+		c = generate(eq_df, descriptors, dim, beta, encoder, decoder)
 
 		for idx, (key, val) in enumerate(c.items()):
 			code = np.zeros(3)
 			code[:val.shape[0]] = val
+			print(dim, beta, idx, code)
 			codes[dim-1][beta-1][idx] = code
 
-	sio.savemat('../plugin/assets/codes.mat', {'codes' : codes})	
+	# check if directory exists
+	if not os.path.isdir(os.path.join('..','plugin','assets')):
+		os.makedirs(os.path.join('..','plugin','assets'))
+
+	# save the final array into a mat file in the plugin assets directory
+	sio.savemat(os.path.join('..','plugin','assets', 'codes.mat'), {'codes' : codes})	
