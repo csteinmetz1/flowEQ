@@ -27,11 +27,11 @@ classdef flowEQ < audioPlugin & matlab.System
         zDim             =      0.0;
         interpolate      =      0.0;
         strength         =      1.0;
-        firstTerm        =  Semantic.one;
-        secondTerm       =  Semantic.one;
+        firstCode        =  Semantic.warm;
+        secondCode       =  Semantic.bright;
         latentDim        =  LatentDim.two;
         eqMode           =  OperatingMode.traverse;
-        disentanglement  =  DisentangleControl.some;
+        disentanglement  =  DisentangleControl.less;
         extend           =    false;
         % Parametric EQ Parameters (manual)
         lowShelfActive   =     true;
@@ -90,8 +90,8 @@ classdef flowEQ < audioPlugin & matlab.System
             audioPluginParameter('yDim',            'DisplayName','y',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[3,4; 3,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('zDim',            'DisplayName','z',                 'Label','',   'Mapping',{'lin', -2, 2},                            'Layout',[4,4; 4,5],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('extend',          'DisplayName','Extend (x2)',       'Label','',   'Mapping',{'enum', 'Off', 'On'},                     'Layout',[5,5; 5,5],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('firstTerm',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm 1','Warm 2','Warm 3'},      'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
-            audioPluginParameter('secondTerm',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Bright 1','Bright 2','Bright 3'},'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('firstCode',       'DisplayName','Embedding A',       'Label','',   'Mapping',{'enum', 'Warm','Warmer','Warmest','Bright','Brighter','Brightest'},'Layout',[2,7; 2,8],   'DisplayNameLocation', 'left'),...
+            audioPluginParameter('secondCode',      'DisplayName','Embedding B',       'Label','',   'Mapping',{'enum', 'Warm','Warmer','Warmest','Bright','Brighter','Brightest'},'Layout',[3,7; 3,8],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('interpolate',     'DisplayName','Interpolate',       'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[4,7; 4,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...
             audioPluginParameter('disentanglement', 'DisplayName','Beta',              'Label','',   'Mapping',{'enum', 'None','Less', 'Some', 'More'},   'Layout',[6,7; 6,7],   'DisplayNameLocation', 'left'),...
             audioPluginParameter('strength',        'DisplayName','Strength',          'Label','',   'Mapping',{'lin', 0, 1},                             'Layout',[7,5; 7,8],   'DisplayNameLocation', 'left', 'EditBoxLocation', 'right'),...           
@@ -158,6 +158,9 @@ classdef flowEQ < audioPlugin & matlab.System
         preEqLoudnessMeter;
         postEqLoudnessMeter; 
 
+        % Latent vector
+        x = 0; y = 0; z = 0;
+
     end
     %----------------------------------------------------------------------
     % public methods
@@ -165,43 +168,40 @@ classdef flowEQ < audioPlugin & matlab.System
     methods(Access = protected)
         function out = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
-            % initialize temporary latent vector values 
-            x = 0; y = 0; z = 0;
-
             if plugin.updateAutoEqState && plugin.eqMode ~= OperatingMode.manual
                 
                 % determine latent code based on operating mode
                 if plugin.eqMode == OperatingMode.traverse
-                    x = plugin.xDim;
-                    y = plugin.yDim;
-                    z = plugin.zDim;
+                    plugin.x = plugin.xDim;
+                    plugin.y = plugin.yDim;
+                    plugin.z = plugin.zDim;
                 elseif plugin.eqMode == OperatingMode.semantic
-                    aIdx = cast(plugin.firstTerm,'int8');
-                    bIdx = cast(plugin.secondTerm,'int8');
+                    aIdx = plugin.firstCode;
+                    bIdx = plugin.secondCode;
                     A = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, aIdx, :), 3, 1);
-                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx + 3, :), 3, 1);
+                    B = reshape(plugin.codes.codes(plugin.latentDim, plugin.disentanglement, bIdx, :), 3, 1);
                     latentCode = A + (plugin.interpolate * (B - A));
-                    x = latentCode(1);
-                    y = latentCode(2);
-                    z = latentCode(3);
+                    plugin.x = latentCode(1);
+                    plugin.y = latentCode(2);
+                    plugin.z = latentCode(3);
                 end
 
                 % extend the area of the latent space that is reachable
                 % this is only applicable in Traverse mode
                 if plugin.extend && plugin.eqMode == OperatingMode.traverse
-                    x = x * 2;
-                    y = y * 2;
-                    z = z * 2;
+                    plugin.x = plugin.x * 2;
+                    plugin.y = plugin.y * 2;
+                    plugin.z = plugin.z * 2;
                 end
 
                 % pass latent vector through decoder
                 switch (plugin.latentDim)
                     case LatentDim.one
-                        x_hat = plugin.net1d{plugin.disentanglement}.predict([x]);
+                        x_hat = plugin.net1d{plugin.disentanglement}.predict([plugin.x]);
                     case LatentDim.two
-                        x_hat = plugin.net2d{plugin.disentanglement}.predict([x y]);
+                        x_hat = plugin.net2d{plugin.disentanglement}.predict([plugin.x plugin.y]);
                     otherwise 
-                        x_hat = plugin.net3d{plugin.disentanglement}.predict([x y z]);
+                        x_hat = plugin.net3d{plugin.disentanglement}.predict([plugin.x plugin.y plugin.z]);
                 end 
                 
                 x_hat = plugin.net1d{1}.denormalize(x_hat); % denormalize 1x13 param vector
@@ -353,7 +353,7 @@ classdef flowEQ < audioPlugin & matlab.System
                         gainComp = minGain;
                     end
                     
-                    gainComp
+                    %gainComp
                     plugin.loudnessGain = gainComp;
                 end
                 % Apply loudness compensation output gain
@@ -402,8 +402,8 @@ classdef flowEQ < audioPlugin & matlab.System
                          plugin.highShelfGain...
                          plugin.highShelfFreq];
                 end
-                code = [x, y, z];
-                dim  = cast(plugin.latentDim, 'int8');
+                code = [plugin.x, plugin.y, plugin.z];
+                dim  = cast(plugin.latentDim, 'double');
                 plugin.udpsend([b, a, p, code, dim])
             end
         end
@@ -663,19 +663,19 @@ classdef flowEQ < audioPlugin & matlab.System
         function val = get.strength(plugin)
             val = plugin.strength;
         end
-        function set.firstTerm(plugin, val)
-            plugin.firstTerm = val;
+        function set.firstCode(plugin, val)
+            plugin.firstCode = val;
             setUpdateAutoEqState(plugin, true);
         end
-        function val = get.firstTerm(plugin)
-            val = plugin.firstTerm;
+        function val = get.firstCode(plugin)
+            val = plugin.firstCode;
         end
-        function set.secondTerm(plugin, val)
-            plugin.secondTerm = val;
+        function set.secondCode(plugin, val)
+            plugin.secondCode = val;
             setUpdateAutoEqState(plugin, true);
         end
-        function val = get.secondTerm(plugin)
-            val = plugin.secondTerm;
+        function val = get.secondCode(plugin)
+            val = plugin.secondCode;
         end
         function set.interpolate(plugin, val)
             plugin.interpolate = val;
