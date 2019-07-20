@@ -17,7 +17,7 @@ flowEQ presents a new way to navigate equalization in the music production proce
     - [Additional](#additional-controls)
 - [Visualizer](#visualizer)
 - [Theory](#theory)
-    - [VAE](#vae)
+    - [β-VAE](#β-vae)
 	- [Training](#training)
     - [Evaluation](#evaluation)
 - [Resources](#resources)
@@ -25,8 +25,8 @@ flowEQ presents a new way to navigate equalization in the music production proce
 
 ## Overview
 
-flowEQ uses a disentangled variational autoencoder in order to provide a new modality for modifying the timbre of recordings. 
-By using the trained decoder network the user can more quickly search through the configurations of a 5 band parametric equalizer.
+**flowEQ** uses a disentangled variational autoencoder in order to provide a new modality for modifying the timbre of recordings. 
+By using the trained decoder network the user can more quickly search through the configurations of a five band parametric equalizer.
 This methodology promotes using your ears to determine the proper EQ settings over looking at transfer functions or specific frequency controls.
 Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to interact with the trained models and sample from the latent space of each.
 
@@ -35,6 +35,9 @@ Two main modes of operation are provided (**Traverse** and **Semantic**), which 
 - Quick and easy timbral adjustments
 - Automated timbral shifts over time for creative effects
 - Powerful 'tone controls' for users in a playback/listening setting
+
+![Full plugin](img/full_plugin.png)
+> VST plugin with custom GUI shown running in REAPER
 
 ## Setup
 
@@ -155,8 +158,6 @@ We made it 🎉 You now have a VST or AU plugin ready to be loaded in your DAW.
 
 The EQ features three modes of operation, which are selected using the **EQ Mode** control at the top of the plugin.
 
-![Full plugin](img/full_plugin.png)
-
 ### Traverse
 
 ![Traverse](img/traverse.png)
@@ -197,9 +198,12 @@ When set to *1*, the latent vector of B will be used as input to the decoder.
 Manual mode provides the user with direct control of the five band parametric equalizer using the controls at the bottom of the plugin.
 Unfortunately, the framework does not currently provide a means to link the parameters of the manual equalizer with the intelligent equalizer. 
 
-In a future implementation (via JUCE), the user will be able to seamlessly switch between interacting with the decoder and see those parameters
+In a future implementation (via [JUCE](https://juce.com/)), the user will be able to seamlessly switch between interacting with the decoder and see those parameters
 updated in real-time on the full manual parametric equalizer below. 
 This will enable users to quickly search the latent space with the decoder for a relevant timbre and then tweak it further with the manual controls.
+
+Each of the five bands features an **Active** checkbox. Un-checking one of these will deactivate the respective band. 
+This is applicable both in *Manual* mode as well as *Traverse* and *Semantic*, although it may prove less useful in the later two.
 
 ### Additional controls
 
@@ -253,15 +257,108 @@ Both sliders are active in all modes of operation.
 
 ## Visualizer 
 
+Since the MATLAB Audio Toolbox does not provide a means for more advanced visualizations within the GUI a second, small MATLAB program is provided to make visualizations in real-time.
+This works by sending data from the plugin over UDP to the visualizer. This program features two windows.
+
+### Equalizer transfer function
+
+![Transfer function](img/tf.gif)
+
+Using the [dsp.DynamicFilterVisualizer](https://www.mathworks.com/help/dsp/ref/dsp.dynamicfiltervisualizer.html), 
+the current filter coefficients from **flowEQ** are displayed on a magnitude response plot. 
+This helps to provide greater visual feedback to the user on the equalizer parameters, since they cannot be linked to the knobs within the plugin itself. 
+Traversing the latent space and observing these transfer functions lends insight into the structure of the latent space for each trained model.
+
+### Latent space embedding
+
+![Latent](img/latent.gif)
+
+This visualization shows the physical location of the current latent code within the N dimensional latent space of the current model. 
+As shown in the animation above, when the user changes the **Latent** control in the plugin, the plot transitions from a 2D to a 2D plot. 
+When using a one dimensional model, a 2D plot is shown but the code only moves across the x-axis.
+
+### Usage
+
+To run the visualizer open MATLAB, navigate to `plugin/` and start the script.
+
+```
+>> UDPVisualizer
+```
+
+Unfortunately, due to security provisions in the last few versions of macOS ([SIP](https://support.apple.com/en-us/HT204899)), 
+the visualizer will not run correctly as a compiled plugin. 
+To use the visualizer you can run two instances of MATLAB, one in which the plugin is run as MATLAB code, and the other which runs the visualizer.
+The visualizer should work on Windows as a VST, but this has yet to be tested.
+
 ## Theory
 
-### VAE
+The parametric equalizer is a staple in the audio engineer's toolbox for shaping recordings. 
+First introduced in the [seminal AES paper](http://www.aes.org/e-lib/browse.cfm?elib=16171) by George Massenburg in 1972, 
+the parametric equalizer has become the defacto format for providing control over timbral shaping.
+These equalizers often feature multiple bands, each of with their own center frequency, gain, and Q controls. 
+This provides the audio engineer with great freedom over the shape of the filters transfer function.
+
+![GML 8200](img/gml.jpg)
+> GML 8200 (Legendary Class A, 2-channel, 5-band parametric equalizer)
+
+While the parametric equalizer provides a well designed interface, it requires a number of skills on the part of the audio engineer to be utilized effectively.
+These include an understanding of the relationship of individual frequency ranges to different timbres as well as filter shapes (peaking, shelves, and Q factor).
+The process of learning to use these powerful timbral shaping tools is time consuming and requires a great deal of experience.
+
+The goal of **flowEQ** is to provide a high-level interface to a traditional five band parametric equalizer that enables novice users to effectively apply timbral processing.
+In addition, this interface can provide experienced engineers with a new method of searching across multiple timbral profile very quickly. 
+This also has the potential to unlock new creative effects, that would be challenging to achieve otherwise.
+ 
+### Autoencoder
+
+To realize this goal we utilize a Beta-Variational Autoencoder, but first let us look over the vanilla autoencoder.
+
+An autoencoder is a architecture comprised of two functions. The first is the encoder function. 
+This function, **e(x)**, takes as input our high dimensional data, **x**, and transforms it to a lower dimension space. 
+This is known as the *latent space*, shown as the green, Hidden elements in the figure below. 
+The second function, known as the decoder, **d(z)**, takes as input a lower dimension vector from the latent space,
+and produces an output with the same dimensionality of **x**, the original input. 
+That is to say, the entire autoencoder model, **d(e(x))**, simply takes the original input and attempts to reconstruct it after passing it through a bottle-neck.
+
+In order for this structure to prove useful, the encoder and decoder functions must be able to effectively transform the data without creating too great a loss of information.
+This is most often achieved by implementing the encoder and decoder as neural networks, which are then trained to have weights which most effectively perform the job of down-sampling an input and then reconstructing with as little error as possible. 
+
+![Autoencoder](img/ae.png)
+
+For our application we want to use the autoencoder as a dimensionality reduction mechanism that allows users to use 1, 2, or 3 sliders to fully control all 13 knobs of the five band parametric equalizer. 
+This means that the input to the encoder is a 13 dimensional vector, the hidden layer is a vector of size 1, 2, or 3, and the decoder maps vectors from these lower dimensional spaces back to 13 dimensional vectors that hopefully closely match those of the original input.
+Once this model is trained, we need only to use the decoder and provide the user with the ability to sample from the latent space. 
+Each point within this latent space (controlled via 1, 2, or 3 sliders) corresponds to a set of equalizer parameters. 
+
+### Dataset
+
+In order to train this model we need an appropriate dataset. 
+In this case we use the [SAFE-DB dataset](http://www.semanticaudio.co.uk/datasets/data/).
+This dataset contains samples of parametric equalizer settings along with semantic descriptors of the resultant filter.
+These samples were collected using [their equalizer](https://github.com/semanticaudio/SAFE), shown below.
+
+![SAFE Equalizer](img/safe-eq.png)
+
+### β-VAE
 ### Training
 ### Evaluation
 
 ## Resources
 
+> R. Stables, S. Enderby, B. De Man, G. Fazekas, and J. D. Reiss, “SAFE: A system for the extraction and retrieval of semantic audio descriptors”, The International Society for Music Information Retrieval (ISMIR), 2014.
+
+> Bowman, S. R., Vilnis, L., Vinyals, O., Dai, A. M., Jozefowicz, R., & Bengio, S. "Generating sentences from a continuous space." arXiv preprint arXiv:1511.06349. 2015.
+
+> R. Stables, B. De Man, S. Enderby, J. D. Reiss, G. Fazekas, and T, Wilmering, "Semantic description of timbral transformations in music production." Proceedings of the 24th ACM international conference on Multimedia. ACM, 2016.
+
+> S. Stasis, R. Stables, and J. Hockman, "Semantically controlled adaptive equalisation in reduced dimensionality parameter space". Applied Sciences, 6(4), 116. 2016.
+
+> Higgins, Irina, et al. "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework." ICLR 2.5 (2017): 6.
+
+> C. P. Burgess, I. Higgins, A. Pal, L. Matthey, N. Watters, G. Desjardins, and A. Lerchner, "Understanding disentangling in β-VAE." arXiv preprint arXiv:1804.03599. 2018.
+
 ## License
-This project is licensed under the BSD license, as specified by the [MATLAB Central Terms of Use](https://www.mathworks.com/matlabcentral/termsofuse.html#filex) and the [MATLAB Central File Exchange Licensing FAQ](https://www.mathworks.com/matlabcentral/FX_transition_faq.html#What_is_BSD).
+This project is licensed under the BSD license, as specified by the [MATLAB Central Terms of Use](https://www.mathworks.com/matlabcentral/termsofuse.html#filex) 
+and the [MATLAB Central File Exchange Licensing FAQ](https://www.mathworks.com/matlabcentral/FX_transition_faq.html#What_is_BSD).
 The code is also jointly hosted on [MATLAB Central File Exchange for download](), as required by the [AES MATLAB Plugin Student Competition](http://www.aes.org/students/awards/mpsc/).
 The full text of the BSD license is available on the [Open Source Initiative site](https://opensource.org/licenses/BSD-3-Clause).
