@@ -17,18 +17,19 @@ flowEQ presents a new way to navigate equalization in the music production proce
     - [Additional](#additional-controls)
 - [Visualizer](#visualizer)
 - [Theory](#theory)
+    - [Autoencoder](#autoencoder)
+    - [Dataset](#dataset)
     - [β-VAE](#β-vae)
 	- [Training](#training)
-    - [Evaluation](#evaluation)
 - [Resources](#resources)
 - [License](#license)
 
 ## Overview
 
-**flowEQ** uses a disentangled variational autoencoder in order to provide a new modality for modifying the timbre of recordings. 
-By using the trained decoder network the user can more quickly search through the configurations of a five band parametric equalizer.
+**flowEQ** uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via parametric equalizer. 
+By using the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer.
 This methodology promotes using your ears to determine the proper EQ settings over looking at transfer functions or specific frequency controls.
-Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to interact with the trained models and sample from the latent space of each.
+Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of each of the 12 train models.
 
 ### Applications
 
@@ -296,7 +297,7 @@ The parametric equalizer is a staple in the audio engineer's toolbox for shaping
 First introduced in the [seminal AES paper](http://www.aes.org/e-lib/browse.cfm?elib=16171) by George Massenburg in 1972, 
 the parametric equalizer has become the defacto format for providing control over timbral shaping.
 These equalizers often feature multiple bands, each of with their own center frequency, gain, and Q controls. 
-This provides the audio engineer with great freedom over the shape of the filters transfer function.
+This provides the audio engineer with great freedom over the shape of the filters' transfer function.
 
 ![GML 8200](img/gml.jpg)
 > GML 8200 (Legendary Class A, 2-channel, 5-band parametric equalizer)
@@ -311,7 +312,7 @@ This also has the potential to unlock new creative effects, that would be challe
  
 ### Autoencoder
 
-To realize this goal we utilize a Beta-Variational Autoencoder, but first let us look over the vanilla autoencoder.
+To realize this goal we utilize a disentangled variational autoencoder (β-VAE), but first let us look over the vanilla autoencoder.
 
 An autoencoder is a architecture comprised of two functions. The first is the encoder function. 
 This function, **e(x)**, takes as input our high dimensional data, **x**, and transforms it to a lower dimension space. 
@@ -340,8 +341,58 @@ These samples were collected using [their equalizer](https://github.com/semantic
 ![SAFE Equalizer](img/safe-eq.png)
 
 ### β-VAE
+
+Now, back to the disentangled variational autoencoder (β-VAE). 
+The variational autoencoder is an improvement on the vanilla autoencoder. 
+Instead of mapping the input to a fixed vector, we map it to a distribution, 
+meaning that our encoder learns to produce a mean and standard deviation (since we use a Gaussian distribution).
+During training we want the model to learn a distribution that matches as closely as possible the true distribution that created the data.
+To do this, we add an additional factor to the loss function, the Kullback-Leibler (KL) divergence.
+This is a measure of the similarity between two distributions, hence forcing the learned distribution closer to actual distribution.
+
+The VAE has the nice quality that the learned space becomes more regularized, and hence smoother. 
+This may not (and often isn't) the case with a vanilla autoencoder. 
+In our application this means that as the user samples from the latent space the generated equalizer settings with smoothly transition.
+
+Introducing the **β** factor simply applies a weighting to the KL divergence in the loss function. 
+As we increase **β** we force the model to more closely match the actual data distribution with a stronger constraint of the latent space.
+This has the effect of disentangling the representation, using the latent space more efficiently is some cases.
+Although, greater regularization often comes at the cost of worse reconstruction, therefore there is interest in balancing this factor to the application.
+
+In this case, we train a total of 12 models, That is 1D, 2D, and 3D models with four different **β** values for each (0.0, 0.001, 0.01, and 0.02).
+Each of these models are broken out in the plugin and the user can then control how much regularization desired and directly interact with the model.
+
+For a more in-depth, mathematical investigation of these topics refer the [post on my website](https://christiansteinmetz.com).
+
 ### Training
-### Evaluation
+
+During training we can observe empirically what was outlined in the previous sections.
+The animation below shows samples generated with the decoder every 10 epochs during training.
+Each transfer function plot refers to the reconstruction from a point in the 2D latent space, with the center most plot corresponding to **x**=0, **y**=0. 
+We can observe as the model is trained the transfer function shapes become more regularized, and moving from one to next is done so smoothly.
+It also has the nice property that and embedding at [0,0] represents a nearly unit gain filter. 
+
+Moreover, since this model was trained with **β**=0.01 ('some' regularization),
+we can observe that the model as disentangled the representation so that the **x** dimension encodes the transformation from *warm* (left) to *bright* (right).
+This is further confirmed by the second animation. 
+It also appears that the **y** dimension encodes some notion of 'intensity' or 'strength',
+where as you move in the positive **y** direction the *warm* and *bright* curves become more *warm* or more *bright*.
+
+
+![Training manifold](img/2d_beta_0.010_200epochs_1_crop.gif)
+> 2D manifold during training over 200 epochs (β = 0.010)
+
+This animation shows each of the training samples projected into the latent space via the encoder during training. 
+(Training data is used since the dataset is very small and therefore harder to visualize with the small test set, and also because we are not wholly concerned about over-fitting in this application). 
+During this process we can observe two clear trends. 
+First, over the 200 epochs the points become centered around [0,0]. 
+This is a nice quality and a result of our regularized, probabilistic latent space. 
+Second we observe that very early on in the training process (as soon as the **β** factor is introduced at epoch 50), 
+the two classes become more oriented with the y-axis as a division between the two.
+Further increasing the **β** factor will force this more greatly.
+
+![Data projection](img/2d_beta_0.010_200epochs_2.gif)
+Training data projected into 2D latent space over 200 epochs (β = 0.010)
 
 ## Resources
 
