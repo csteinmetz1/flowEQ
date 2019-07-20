@@ -1,24 +1,30 @@
-function build
+function build(modeldir)
 % BUILD Generate a VST or AU flowEQ for your platform.
 %
-%   This adds a few folder to the path which is required to compile
+%   MODELDIR (optional) - Pass path to models if they need to be converted 
+%
+%   This adds a few folders to the path that are required to compile
 %   the plugin. It also runs some functions which create files that 
 %   are needed. If you want to target a different type or platform 
 %   see the usage of generateAudioPlugin and run from the Command Window. 
 %
+%   To run the plugin as MATLAB code using audioTestBench use the run script.
+%
 %   Note: This takes about 60 seconds on my 2018 MacBook Pro.
 %
-
+%   See also ConvertModels, generateAudioPlugin
+% 
 addpath enums
 addpath assets
 
-%% Generate assets for compilation
-ConvertModels       % Convert the latest Keras models (hdf5) to mat files
-SaveLatentCodes     % Create mat file with the semantic embeddings
+if exist('modeldir', 'var')
+    %% generate assets for compilation
+    ConvertModels(modeldir);
+end
 
-%% Compile the plugin based on platform
+%% compile the plugin based on platform
 if ismac
-    generateAudioPlugin -vst flowEQ.m
+    generateAudioPlugin -au flowEQ.m
 else
     generateAudioPlugin -vst flowEQ.m
 end

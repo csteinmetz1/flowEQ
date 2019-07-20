@@ -1,19 +1,19 @@
 function UDPVisualizer
-% Provide visual front-end for the flowEQ plugin
+% UDPVISUALIZER Provide visual front-end for the flowEQ plugin
 %
-% This function reads UDP packets from the plugin
-% and then creates a variety of visualizations.
+%   This function reads UDP packets from the plugin
+%   and then creates a variety of visualizations.
 %
-% Data format
-% ----------------------------------------------
-% 01-15 : (b)   Numerator biquad coefficients
-% 16-30 : (a)   Denominator biquad coefficients
-% 31-43 : (p)   Parametric EQ parameters
-% 44-46 : (z)   Latent vector
-%    47 : (dim) Latent dimension
+%   Data format
+%   ----------------------------------------------
+%   01-15 : (b)   Numerator biquad coefficients
+%   16-30 : (a)   Denominator biquad coefficients
+%   31-43 : (p)   Parametric EQ parameters
+%   44-46 : (z)   Latent vector
+%      47 : (dim) Latent dimension
 % 
 
-%% Configure UDP Receiver
+%% configure UDP Receiver
 UDPReceive = dsp.UDPReceiver('LocalIPPort', 20000, ...
                              'MessageDataType', 'double', ...
                              'MaximumMessageLength', 49, ...
@@ -23,7 +23,7 @@ c = onCleanup(@()release(UDPReceive));
 v = dsp.DynamicFilterVisualizer(8192, 44100, [20 20e3], 'XScale','Log');
 show(v);
 
-%% Graphics
+%% graphics
 close all;
 latentPlot = figure('Position', [10 10 900 600]);
 
@@ -79,4 +79,3 @@ while true
         set(gca,'position',pos);  % write the new values
     end
 end
-

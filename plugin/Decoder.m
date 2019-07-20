@@ -1,13 +1,14 @@
 classdef Decoder
-    % Decoder Construct a simple decoder network for prediction.
-    %
-    %   This class loads model weights from the supplied .mat file and
-    %   constructs a simple neural network (the decoder of a variational
-    %   autoencoder) including relevant activation functions. Run the
-    %   predict function to sample from the latent space and generate new
-    %   EQ parameter values. The decoder generates normalized parameters
-    %   (between 0 and 1), which must first be denormalized before being
-    %   passed to the coefficient generation functions.
+% DECODER Construct a simple decoder network for prediction.
+%
+%   This class loads model weights from the supplied .mat file and
+%   constructs a simple neural network (the decoder of a variational
+%   autoencoder) including relevant activation functions. Run the
+%   predict function to sample from the latent space and generate new
+%   EQ parameter values. The decoder generates normalized parameters
+%   (between 0 and 1), which must first be denormalized before being
+%   passed to the coefficient generation functions.
+
     properties
         W1, b1, W2, b2; % model weights
         xmax, xmin;     % normalization values
@@ -63,7 +64,7 @@ classdef Decoder
         
         function xDenorm = denormalize(obj, x)
             % Take normalized EQ parameters and denormalize them
-           xDenorm = (x .* (obj.xmax - obj.xmin)) + obj.xmin;
+            xDenorm = (x .* (obj.xmax - obj.xmin)) + obj.xmin;
         end
    end
 end

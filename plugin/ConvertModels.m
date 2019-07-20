@@ -1,16 +1,14 @@
 function ConvertModels(modeldir)
-% CONVERTMODELS
+% CONVERTMODELS Create mat files with model weights from Keras hdf5 files.
 %
-%   This script loads the weights from the trained models and then
-%   converts them to MATLAB matracies, saving them to .mat files.
-%   These .mat files are then loaded by the Decoder class which
-%   apply the weights during prediction.
+%   MODELDIR (required) - Path to directory containing trained Keras models
 %
-%   Note: Keras saves weights as 32-bit floats (single) but the
-%   decoder implementation in MATLAB operates on doubles at the moment
-%   so we cast to a double here. In the future this may be changed for
-%   greater efficiency, but it is not currently a concern.
-%
+%   Running the trainfull.py script will train all 12 models and save out 
+%   each model architecture (.json) along with the learned weights (.h5).
+%   Once complete, passing the directory to this function will iterate 
+%   over the models and convert each one to a mat file.
+% 
+%   See also LoadModel 
 
 % get filenames for all .h5 model weights
 models = dir(fullfile(modeldir,'*.h5'));
@@ -19,8 +17,8 @@ fprintf('Found %d models in %s\n', length(models), modeldir)
 
 % load each set of model weights
 for i=1:length(models)
-	h5path  = fullfile(modeldir, models(i).name);
-	matpath = fullfile('assets', strrep(models(i).name, '.h5', '.mat')); 
-	LoadModel(h5path, matpath);
+    h5path  = fullfile(modeldir, models(i).name);
+    matpath = fullfile('assets', strrep(models(i).name, '.h5', '.mat')); 
+    LoadModel(h5path, matpath);
 end
  
