@@ -26,10 +26,10 @@ flowEQ presents a new way to navigate equalization in the music production proce
 
 ## Overview
 
-**flowEQ** uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via parametric equalizer. 
+**flowEQ** uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via a parametric equalizer. 
 By using the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer.
-This methodology promotes using your ears to determine the proper EQ settings over looking at transfer functions or specific frequency controls.
-Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of each of the 12 train models.
+This methodology promotes using one's ears to determine the proper EQ settings instead of looking at transfer functions or specific frequency controls.
+Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of the 12 train models.
 
 ### Applications
 
@@ -42,7 +42,7 @@ Two main modes of operation are provided (**Traverse** and **Semantic**), which 
 
 ## Setup
 
-Pre-compiled binaries are available on my [website](https://christiansteinmetz.com). Just download the one for your platform and add it to the system directory designed for audio plugins.
+Pre-compiled binaries are available on the [project website](http://flowEQ.ml). Just download the one for your platform and add it to the system directory designed for audio plugins.
 Restarting your DAW or forcing it to re-scan the audio plugin directories should make it appear. 
 
 Skip over to the [Controls](#controls) section to learn how to use the plugin.
@@ -362,7 +362,7 @@ Although, greater regularization often comes at the cost of worse reconstruction
 In this case, we train a total of 12 models, That is 1D, 2D, and 3D models with four different **β** values for each (0.0, 0.001, 0.01, and 0.02).
 Each of these models are broken out in the plugin and the user can then control how much regularization desired and directly interact with the model.
 
-For a more in-depth, mathematical investigation of these topics refer the [post on my website](https://christiansteinmetz.com).
+For a more in-depth, mathematical investigation of these topics refer the [project site](http://flowEQ.ml).
 
 ### Training
 
@@ -392,7 +392,7 @@ the two classes become more oriented with the y-axis as a division between the t
 Further increasing the **β** factor will force this more greatly.
 
 ![Data projection](img/2d_beta_0.010_200epochs_2.gif)
-Training data projected into 2D latent space over 200 epochs (β = 0.010)
+> Training data projected into 2D latent space over 200 epochs (β = 0.010)
 
 ## Resources
 
