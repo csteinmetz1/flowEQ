@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>flowEQ</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="css/styles.css">
+
+	
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+	  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], processEscapes:true}
+	});
+	</script>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- Leave those next 4 lines if you care about users using IE8 -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+	<div class="container">
+		<h1>flowEQ</h1>
+		<p>
+			<strong>flowEQ</strong> uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via a parametric equalizer. 
+			By traversing the learned latent space of the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer. 
+			This methodology promotes using one’s ears to determine the proper EQ settings over looking at transfer functions or specific frequency controls. 
+			Two main modes of operation are provided (Traverse and Semantic), which allow users to sample from the latent space of the 12 trained models.
+		</p>
+
+		<h3 id="applications">Applications</h3>
+		<ul>
+			<li>Quick and easy timbral adjustments</li>
+			<li>Automated timbral shifts over time for creative effects</li>	
+			<li>Powerful 'tone controls' for users in a playback/listening setting</li>
+		</ul>
+
+		<h3 id="download">Download</h3>
+		<div class="row">
+			<div class="col-sm">
+				<p>Just download the proper plugin for for you platform and move it to the plugin directory for your OS.</p>
+			</div>
+			<div class="col-sm">
+				<a class="btn btn-dark" href="#" role="button">macOS VST</a>
+				<a class="btn btn-dark" href="#" role="button">macOS AU</a>
+				<a class="btn btn-dark" href="#" role="button">Windows VST</a>
+			</div>
+		</div>
+
+		<pre><code>
+			Windows
+			VST3: C:\Program Files\Common Files\VST3
+	
+			macOS
+			AU: Macintosh HD/Library/Audio/Plug-Ins/Components
+			VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
+		</code></pre>
+
+		<p>Skip to the <a href="#controls">Controls</a> section to learn about how to use the plugin, or read on to learn more about how it all works.</p>
+
+		<figure class="figure">
+				<img src="img/full_plugin.png" class="img" alt="Full plugin">
+			<figcaption class="figure-caption">flowEQ plugin running with the custom GUI in REAPER</figcaption>
+		</figure>
+
+		<div class="row">
+			<div class="col-sm-2">
+				<a class="btn btn-dark" href="#" role="button">GitHub</a>
+			</div>
+			<div class="col-sm">
+				<p>
+					flowEQ is open source and all of the code is available on GitHub. 
+					You can build the plugin yourself using MATLAB or modify and train the models yourself, with easy tools for importing them into the plugin.
+				</p>
+			</div>
+		</div>
+
+		<h2 id="history">History</h2>
+		<p>
+			The parametric equalizer is a staple in the audio engineer's toolbox for shaping recordings. 
+			First introduced in the seminal AES paper by George Massenburg in 1972, the parametric equalizer has become the de-facto format for providing control over timbral shaping. 
+			These equalizers often feature multiple bands, each with their own center frequency, gain, and Q controls. 
+			This provides the audio engineer with great freedom over the shape of the filter’s transfer function.
+		</p>
+		
+		<figure class="figure">
+			<img src="img/gml.jpg" class="img-fluid" alt="GML 8200">
+			<figcaption class="figure-caption">GML 8200 (Legendary Class A, 2-channel, 5-band parametric equalizer)</figcaption>
+		</figure>
+
+		<p>
+			While the parametric equalizer provides a well designed interface, it requires a number of skills on the part of the audio engineer to be utilized effectively. 
+			These include an understanding of the relationship of individual frequency ranges to different timbres, as well as filter shapes (peaking, shelves, and Q factor). 
+			The process of learning to use these powerful timbral shaping tool is time consuming and requires a great deal of experience.
+		</p>
+		<p>
+			The goal of flowEQ is to provide a high-level interface to a traditional five band parametric equalizer that enables novice users to effectively apply timbral processing. 
+			In addition, this interface can provide experienced engineers with a new method of searching across multiple timbral profiles very quickly. 
+			This also has the potential to unlock new creative effects, that would be challenging to achieve otherwise.
+		</p>
+
+		<h2 id="plugin">Plugin</h2>
+		<p>
+			The plugin is built using the MATLAB Audio Toolbox and Python. 
+			The autoencoder models are first trained using Keras (tf.keras in TensorFlow 2.0 beta). 
+			These trained models are later converted to MATLAB code and incorporated into the plugin. 
+			Parameters are exposed that allow the user to choose among these different models and then directly interact with them in real-time. 
+			The MATLAB Audio Toolbox provides a means to create VST and AU plugins directly from MATLAB code, enabling their use in common Digital Audio Workstations (DAWs). 
+		</p>
+
+		<h3 id="controls">Controls</h3>
+			<p>The EQ features three modes of operation, which are selected using the EQ Mode control at the top of the plugin.</p>
+
+		<h4>Traverse</h4>
+		<div class="row">
+			<div class="col-sm-7">
+				<p>
+					The Traverse mode allows the user to freely investigate the latent space of the models. 
+					In this mode the three x, y, z sliders can be used to traverse the latent space of the decoder. 
+					Each latent vector decodes to a set of values for the thirteen parameters in the five band equalizer. 
+					By enabling the Extend mode, the limits of the sliders is extended by a factor of 2. 
+					This means that a slider value of -2 will be decoded as -4, and so forth. 
+					This allows for more of the latent space to be explored but may produce more strange and undesirable results.
+				</p>
+			</div>
+			<div class="col-sm">
+				<figure class="figure">
+					<img src="img/traverse.png" class="img-fluid" alt="Traverse">
+				</figure>
+			</div>
+		</div>
+
+
+		<h4>Semantic</h4>
+		<p>
+			This mode allows for a different method of sampling from the latent space. 
+			The x, y, z sliders are deactivated, and the Embedding A and Embedding B comboboxes are used, along with the Interpolate slider.
+			After training, the semantic labels are used to identify relevant clusters within the latent space. 
+			These clusters represent areas of the latent space which are associated with certain semantic descriptors. 
+			The Interpolate control allows users to seamlessly move between the two semantic descriptors in the latent space. 
+			By default the value is set to 0, which means that the decoder is using the latent vector specified by Embedding A. 
+			As the use increases this value to 1, a new latent vector is calculated, which lies somewhere between A and B. 
+			When set to 1, the latent vector of B will be used as input to the decoder.
+		</p>
+
+		<div class="img-center">
+			<figure class="figure">
+				<img src="img/semantic.png" class="img-fuild" alt="Semantic">
+			</figure>
+		</div>
+
+		<h4>Manual</h4>
+		<p>
+			Manual mode provides the user with direct control of the five band parametric equalizer using the controls at the bottom of the plugin. 
+			Unfortunately, the framework does not currently provide a means to link the parameters of the manual equalizer with the intelligent equalizer.
+			In a future implementation (via JUCE), the user will be able to seamlessly switch between interacting with the decoder and see those parameters 
+			updated in real-time on the full manual parametric equalizer below. 
+			This will enable users to quickly search the latent space with the decoder for a relevant timbre and then tweak it further with the manual controls.
+			Each of the five bands features an Active checkbox. 
+			Un-checking one of these will deactivate the respective band. 
+			This is applicable both in Manual mode as well as Traverse and Semantic, although it may prove less useful in the later two.
+	
+		</p>
+
+		<div class="img-center">
+			<figure class="figure img-center">
+				<img src="img/manual.png" class="img-fluid" alt="Manual">
+			</figure>
+		</div>
+
+		<h3>Additional controls</h3>
+
+		<div class="img-center">
+			<figure class="figure">
+				<img src="img/control.png" class="img-fuild" alt="Additional Controls">
+			</figure>
+		</div>
+
+		<h4>Latent</h4>
+		<p>
+			The Latent control allows the user to switch between models with different a different number of latent dimensions (1, 2, or 3). 
+			For example, with the default setting of 2, only the x and y values will be used. 
+			Increasing the latent dimension gives more control over the shape of the generated EQ curve but requires tuning more parameters. 
+			Decreasing the latent dimension makes searching through the latent space faster, but at the cost of find control.
+		</p>
+
+		<h4>β (disentanglement)</h4>
+		<p>
+			This control (a.k.a disentanglement) allows the user to sample from models with varying levels of latent space disentanglement. 
+			Setting this to a lower value will decrease the regularization of the latent space. 
+			This means that moving along a certain dimension is tied less to a specific feature of the equalizer curve, or more entangled. 
+			Greater β means the dimensions of the latent space are more closely tied to a specific feature (in this case warm and bright).
+			It is recommended to leave this control at the default. The intuition behind this control is outlined further in the Theory section.
+		</p>
+
+		<h4>Strength</h4>
+		<p>
+			This control allows the user to decrease the intensity, or strength, of the equalizer by simply scaling the gains for each band. 
+			A Strength setting of 1 will result in the equalizer applied with the exact gains for each band as produced by the decoder. 
+			Lowering this value will scale the gain values downward (toward 0dB), making the equalizer's effect less prominent. 
+			A setting of 0 will have the effect of turning all gains to 0 and therefore bypassing the equalizer all together.
+		</p>
+
+		<h4>Automatic gain compensation</h4>
+		<div class="row">
+			<div class="col-sm-8">
+				<p>
+					Since it is difficult to examine differences in signals that are perceived at different levels, an automatic gain compensation feature is included. 
+					When enabled, this control monitors the difference in the perceived loudness (ITU-R BS.1770 Short-term loudness) between the input (unprocessed audio) and the output (post-EQ). 
+					A gain offset is then applied to force the output level to match the input. 
+					This makes comparing different equalizer settings easier.
+				</p>
+			</div>
+			<div class="col-sm">
+				<figure class="figure">
+					<img src="img/auto_gain.png" class="img-fluid" alt="Automatic Gain Compensation">
+				</figure>
+			</div>
+		</div>
+
+		<p>
+			The default settings work well, but the user can adjust the Update Rate, which will change how quickly the gain adjustment value is moved (if it is too fast clicks will be audible). 
+			The Gain Range setting will limit the maximum amount of gain compensation applied in the positive or negative directions
+			(12 dB allows for +12 dB or - 12 dB of adjustment).
+			Make sure to disable this control after setting the equalizer, or you may hear fluctuations in volume as audio is played.
+		</p>
+		
+		<h4>In/Out gain</h4>
+		<p>
+			These are very straightforward controls that allow the user to adjust the level of the audio both before it enters the equalizer and after it is equalized. 
+			These controls prove useful when additional headroom is needed or to change the output level to match another source for comparison. 
+			Both sliders are active in all modes of operation.
+		</p>
+
+		<h3>Visualizer</h3>
+		<p>
+			Since the MATLAB Audio Toolbox does not provide a means for more advanced visualizations within the GUI, a second, 
+			small MATLAB program is provided to make visualizations in real-time. 
+			This works by sending data from the plugin over UDP to the visualizer. 
+			This program features two windows.
+		</p>
+
+		<div class="row">
+			<div class="col-sm-6">
+				<figure class="figure">
+					<img src="img/tf.gif" class="img-center" alt="Transfer Function">
+					<figcaption class="figure-caption">Equalizer transfer function display</figcaption>
+				</figure>
+			</div>
+			<div class="col-sm-6">
+				<figure class="figure">
+					<img src="img/latent.gif" class="img-center" alt="Latent">
+					<figcaption class="figure-caption">Latent space embedding</figcaption>
+				</figure>
+			</div>
+		</div>
+
+		<h4>Equalizer transfer function</h4>
+		<p>
+			Using the dsp.DynamicFilterVisualizer, the current filter coefficients from flowEQ are displayed on a magnitude response plot. 
+			This helps to provide greater visual feedback to the user on the equalizer parameters, since they cannot be linked to the knobs within the plugin itself. 
+			Traversing the latent space and observing these transfer functions lends insight into the structure of the latent space for each trained model.
+		</p>
+
+		<h4>Latent space embedding</h4>
+		<p>
+			This visualization shows the physical location of the current latent code within the N dimensional latent space of the current model. 
+			As shown in the animation above, when the user changes the Latent control in the plugin, the plot transitions from a 2D to a 3D plot. 
+			When using a one dimensional model, a 2D plot is shown but the code only moves across the x-axis.
+		</p>
+
+		<figure class="figure">
+			<img src="img/demo.gif" class="img-center" alt="Demo">
+			<figcaption class="figure-caption">The Visualizer running with the plugin as MATLAB code</figcaption>
+		</figure>
+
+		<h2>Theory</h2>
+		<p>
+			flowEQ uses a disentangled variational autoencoder (β-VAE) in order to provide an intelligent interface for using a five band parametric equalizer. 
+			This takes advantage of the assumption that certain locations within the parameter space of the equalizer are more relevant than others. 
+			In this case we utilize the SAFE-DB Equalizer dataset, which features a collection of settings from a five band parametric equalizer 
+			along with semantic descriptors for each setting, to train our autoencoder. 
+		</p>
+
+		<p>
+			During training our model learns to reconstruct the thirteen parameters of the equalizer after passing the original input through a lower dimensional bottleneck (1, 2, or 3 dimensional).
+			This overall structure for this full model is shown below for the 2 dimensional case. We see on the left side the input is a 13 dimensional vector made up of the original equalizer parameters. 
+			This is passed through a hidden layer and then through a 2 dimensional bottleneck.
+			The decoder then takes as input this low dimensional vector and attempts to reconstruct the original 13 parameters. 
+		</p>
+
+		<figure class="figure">
+			<img src="img/ae.svg" class="img-fluid" alt="Autoencoder">
+		</figure>
+		
+		<p>
+			While this may not seem like a useful task, we find that if we use the decoder portion of the model, which takes as input a low dimensional vector, we can reconstruct a wide range of equalizer curves using a very only small number of knobs (1, 2, or 3 depending on the dimensionality of the latent space).  
+			The diagram below demonstrates this operation. 
+			Here we have discarded the encoder and sample points from a 2 dimensional plane and feed these points to the decoder. 
+			The decoder then attempts the reconstruct the full 13 parameters. 
+			This lower dimensional latent space  provides an easy way to search across the space of possible equalizer parameters. 
+		</p>
+
+		<figure class="figure">
+			<img src="img/decoder.svg" class="img-fluid" alt="Decoder">
+		</figure>
+
+		<p>
+			We can call our encoder function $f_\theta$, where $\theta$ represents the weights of the encoder. 
+			We can call our decoder function $g_\phi$, where $\phi$ represents the weights of the decoder. 
+			The whole autoencoder is then given by 
+			
+			$$ \large \hat{x} = f_\theta(g_\phi(x))),$$
+			
+			and the reconstruction loss, with a simple MSE metric, can be represented as
+			
+			$$ \large L_{AE}(\theta,\phi) = \frac{1}{n}\sum_{i=1}^{n} (x_i - f_\theta(g_\phi(x_i))))^2.$$
+		</p>
+		
+		<p>
+			While the VAE overall structure looks very similar to the vanilla autoencoder, it is founded on a different statistical methodology: variational inference. 
+			We start by examining a sample from some data distribution, in our case a 13 dimensional vector of equalizer parameters called $x$. 
+			We then want to determine some latent variable $z$ which generates $x$ via the probability distribution $p$, i.e. $p(z|x)$. 
+			Bayes theorem tells us we can find this with
+			
+			$$ \large p(z|x) = \frac{p(x|z) p(z)}{p(x)}. $$
+			
+			The issue is we need to obtain $p(x)$, which is given by
+			
+			$$ \large p(x) = \int{p(x|z)p(z)}dz,$$
+			
+			but it turns out this is intractable.
+		</p>
+	
+		<p>
+			Instead we attempt to approximate $p(z|x)$ using $q(z|x)$, another distribution, preferably a tractable one. 
+			If we parameterize $q(z|x)$ so that it is very similar, we can use it as $p(z|x)$, and this is precisely what we attempt to do during training. 
+			To achieve this we add a new term to the loss function introduced for the vanilla autoencoder.
+			We want to minimize the difference between these distributions by minimizing the KL divergence,
+			
+			$$ \large min \mathbb{KL} (q(z|x) || p(z|x)).$$
+		</p>
+	
+		<p>
+			The KL divergence measures how much information is lost if we use $q(z|x)$ to represent $p(z|x)$, and therefore is an appropriate metric to attempt to minimize in our loss function. 
+			We will not go through a complete derivation of the loss function (refer the the good explanation in this video), but we find that we arrive at a new loss function given by
+			
+			$$ \large L_{VAE}(\theta,\phi) = \sum_{i=1}^{n} - \mathbb{E}_{z \sim q_{\theta}(z|x_i)} [ {\log{p_\phi(x_i | z)}} ] + \mathbb{KL} (q_\theta(z | x_i) || p(z)).$$
+		</p>
+	
+		<p>
+			While this looks fairly different from our previous loss function its not completely different. 
+			We notice that the first term acts similarly to our previous reconstruction loss. 
+			Here we are minimizing the expected negative log-likelihood between the data generated by the decoder, 
+			$p_{\phi}(x_i | z)$, after taking an encoder representation from the encoder, $z \sim q_{\theta}(z|x_i)$. 
+			The second term in the KL divergence, as you should recognize. 
+		</p>
+
+		<p>
+			In our implementation, we specify $p$ as a standard Normal distribution, $N(0,1)$. 
+			This means that our KL divergence term penalizes the encoder when it places codes far outside the bounds of N(0,1). 
+			Without this restriction, as in the vanilla autoencoder, the model may place each data point in arbitrary points in $z$. 
+			In the case of the VAE, we see that the learned space is constrained and a sample, 
+			$x$, is more likely to be placed near other similar samples, a very desirable property in our application.
+		</p>
+
+	</div>
+
+	<!-- Including Bootstrap JS (with its jQuery dependency) so that dynamic components work -->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
