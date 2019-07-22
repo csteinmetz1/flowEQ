@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>flowEQ</title>
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -28,7 +29,7 @@
   </head>
   <body>
     <div class="container">
-        <h1>flowEQ</h1>
+        <h1 class="mt-5">flowEQ</h1>
         <p>
             <strong>flowEQ</strong> uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via a parametric equalizer. 
             By traversing the learned latent space of the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer. 
@@ -56,12 +57,12 @@
         </div>
 
         <pre><code>
-            Windows
-            VST3: C:\Program Files\Common Files\VST3
-    
-            macOS
-            AU: Macintosh HD/Library/Audio/Plug-Ins/Components
-            VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
+        Windows
+        VST3: C:\Program Files\Common Files\VST3
+
+        macOS
+        AU: Macintosh HD/Library/Audio/Plug-Ins/Components
+        VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
         </code></pre>
 
         <p>Skip to the <a href="#controls">Controls</a> section to learn about how to use the plugin, or read on to learn more about how it all works.</p>
@@ -86,7 +87,7 @@
         <h2 id="history">History</h2>
         <p>
             The parametric equalizer is a staple in the audio engineer's toolbox for shaping recordings. 
-            First introduced in the seminal AES paper by George Massenburg in 1972, the parametric equalizer has become the de-facto format for providing control over timbral shaping. 
+            First introduced in the <a href="http://www.aes.org/e-lib/browse.cfm?elib=16171">seminal AES paper by George Massenburg</a> in 1972, the parametric equalizer has become the de-facto format for providing control over timbral shaping. 
             These equalizers often feature multiple bands, each with their own center frequency, gain, and Q controls. 
             This provides the audio engineer with great freedom over the shape of the filter’s transfer function.
         </p>
@@ -110,10 +111,11 @@
         <h2 id="plugin">Plugin</h2>
         <p>
             The plugin is built using the MATLAB Audio Toolbox and Python. 
-            The autoencoder models are first trained using Keras (tf.keras in TensorFlow 2.0 beta). 
+            The autoencoder models are first trained using <a href="https://keras.io/">Keras</a> (<a href="https://www.tensorflow.org/beta/">tf.keras in TensorFlow 2.0 beta</a>). 
             These trained models are later converted to MATLAB code and incorporated into the plugin. 
             Parameters are exposed that allow the user to choose among these different models and then directly interact with them in real-time. 
-            The MATLAB Audio Toolbox provides a means to create VST and AU plugins directly from MATLAB code, enabling their use in common Digital Audio Workstations (DAWs). 
+            The <a href="https://www.mathworks.com/products/audio.html">MATLAB Audio Toolbox</a> provides a means to create VST and AU plugins directly from MATLAB code, 
+            enabling their use in common Digital Audio Workstations (DAWs). 
         </p>
 
         <h3 id="controls">Controls</h3>
@@ -161,7 +163,7 @@
         <p>
             Manual mode provides the user with direct control of the five band parametric equalizer using the controls at the bottom of the plugin. 
             Unfortunately, the framework does not currently provide a means to link the parameters of the manual equalizer with the intelligent equalizer.
-            In a future implementation (via JUCE), the user will be able to seamlessly switch between interacting with the decoder and see those parameters 
+            In a future implementation (via <a href="https://juce.com/">JUCE</a>), the user will be able to seamlessly switch between interacting with the decoder and see those parameters 
             updated in real-time on the full manual parametric equalizer below. 
             This will enable users to quickly search the latent space with the decoder for a relevant timbre and then tweak it further with the manual controls.
             Each of the five bands features an Active checkbox. 
@@ -198,7 +200,7 @@
             Setting this to a lower value will decrease the regularization of the latent space. 
             This means that moving along a certain dimension is tied less to a specific feature of the equalizer curve, or more entangled. 
             Greater β means the dimensions of the latent space are more closely tied to a specific feature (in this case warm and bright).
-            It is recommended to leave this control at the default. The intuition behind this control is outlined further in the Theory section.
+            It is recommended to leave this control at the default. The intuition behind this control is outlined further in the <a href="#Theory">Theory</a> section.
         </p>
 
         <h4>Strength</h4>
@@ -214,7 +216,9 @@
             <div class="col-sm-8">
                 <p>
                     Since it is difficult to examine differences in signals that are perceived at different levels, an automatic gain compensation feature is included. 
-                    When enabled, this control monitors the difference in the perceived loudness (ITU-R BS.1770 Short-term loudness) between the input (unprocessed audio) and the output (post-EQ). 
+                    When enabled, this control monitors the difference in the perceived loudness
+                    (<a href="https://www.mathworks.com/help/audio/ref/loudnessmeter-system-object.html">ITU-R BS.1770 Short-term loudness</a>) 
+                    between the input (unprocessed audio) and the output (post-EQ). 
                     A gain offset is then applied to force the output level to match the input. 
                     This makes comparing different equalizer settings easier.
                 </p>
@@ -265,7 +269,8 @@
 
         <h4>Equalizer transfer function</h4>
         <p>
-            Using the dsp.DynamicFilterVisualizer, the current filter coefficients from flowEQ are displayed on a magnitude response plot. 
+            Using the <a href="https://www.mathworks.com/help/dsp/ref/dsp.dynamicfiltervisualizer.html">dsp.DynamicFilterVisualizer</a>, the current filter coefficients 
+            from flowEQ are displayed on a magnitude response plot. 
             This helps to provide greater visual feedback to the user on the equalizer parameters, since they cannot be linked to the knobs within the plugin itself. 
             Traversing the latent space and observing these transfer functions lends insight into the structure of the latent space for each trained model.
         </p>
@@ -282,14 +287,17 @@
             <figcaption class="figure-caption">The Visualizer running with the plugin as MATLAB code</figcaption>
         </figure>
 
-        <h2>Theory</h2>
+        <h2 id="theory">Theory</h2>
         <p>
-            flowEQ uses a disentangled variational autoencoder (β-VAE) in order to provide an intelligent interface for using a five band parametric equalizer. 
+            flowEQ uses a disentangled variational autoencoder (<a href="https://openreview.net/forum?id=Sy2fzU9gl">β-VAE</a>) 
+            in order to provide an intelligent interface for using a five band parametric equalizer. 
             This takes advantage of the assumption that certain locations within the parameter space of the equalizer are more relevant than others. 
-            In this case we utilize the SAFE-DB Equalizer dataset, which features a collection of settings from a five band parametric equalizer 
+            In this case we utilize the <a href="http://www.semanticaudio.co.uk/datasets/data/">SAFE-DB Equalizer dataset</a>, 
+            which features a collection of settings from a five band parametric equalizer 
             along with semantic descriptors for each setting, to train our autoencoder. 
         </p>
 
+        <h3>Autoencoder</h3>
         <p>
             During training our model learns to reconstruct the thirteen parameters of the equalizer after passing the original input through a lower dimensional bottleneck (1, 2, or 3 dimensional).
             This overall structure for this full model is shown below for the 2 dimensional case. We see on the left side the input is a 13 dimensional vector made up of the original equalizer parameters. 
@@ -325,6 +333,7 @@
             $$ \large L_{AE}(\theta,\phi) = \frac{1}{n}\sum_{i=1}^{n} (x_i - f_\theta(g_\phi(x_i))))^2.$$
         </p>
         
+        <h3>Variational autoencoder</h3>
         <p>
             While the VAE overall structure looks very similar to the vanilla autoencoder, it is founded on a different statistical methodology: variational inference. 
             We start by examining a sample from some data distribution, in our case a 13 dimensional vector of equalizer parameters called $x$. 
@@ -366,11 +375,28 @@
 
         <p>
             In our implementation, we specify $p$ as a standard Normal distribution, $N(0,1)$. 
-            This means that our KL divergence term penalizes the encoder when it places codes far outside the bounds of N(0,1). 
+            This means that our KL divergence term penalizes the encoder when it places codes far outside the bounds of $N(0,1)$. 
             Without this restriction, as in the vanilla autoencoder, the model may place each data point in arbitrary points in $z$. 
             In the case of the VAE, we see that the learned space is constrained and a sample, 
             $x$, is more likely to be placed near other similar samples, a very desirable property in our application.
         </p>
+
+        <h3>β-VAE</h3>
+        <p>
+
+        </p>
+
+        <h2 id="training">Training</h2>
+
+        <figure class="figure">
+            <img src="img/blockdiagram.svg" class="img-fluid" alt="Block diagram">
+        </figure>
+
+        <h2 id="evaluation">Evaluation</h2>
+
+        <figure class="figure">
+            <img src="img/2d_beta_0.000_200epochs_1.gif" class="img-fluid" alt="Block diagram">
+        </figure>
 
     </div>
 
