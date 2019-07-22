@@ -1,8 +1,8 @@
-# <img alt="flowEQ" src="img/marca.svg" height="60">
+# <img alt="flowEQ" src="docs/img/marca.svg" height="60">
 
 flowEQ presents a new way to navigate equalization in the music production process.
 
-![flowEQ demo](img/demo.gif)
+![flowEQ demo](docs/img/demo.gif)
 
 ## Table of contents
 
@@ -37,7 +37,7 @@ Two main modes of operation are provided (**Traverse** and **Semantic**), which 
 - Automated timbral shifts over time for creative effects
 - Powerful 'tone controls' for users in a playback/listening setting
 
-![Full plugin](img/full_plugin.png)
+![Full plugin](docs/img/full_plugin.png)
 > VST plugin with custom GUI shown running in REAPER
 
 ## Setup
@@ -161,7 +161,7 @@ The EQ features three modes of operation, which are selected using the **EQ Mode
 
 ### Traverse
 
-![Traverse](img/traverse.png)
+![Traverse](docs/img/traverse.png)
 
 The *Traverse* mode allows the user to freely investigate the latent space of the models.
 In this mode the three **x**, **y**, **z** sliders can be used to traverse the latent space of the decoder.
@@ -180,7 +180,7 @@ The **Latent** control determines which sliders are active in this mode:
 
 ### Semantic 
 
-![Semantic](img/semantic.png)
+![Semantic](docs/img/semantic.png)
 
 This mode allows for a different method of sampling from the latent space. 
 The **x**, **y**, **z** sliders are deactivated, and the **Embedding A** and **Embedding B** comboboxes are used, along with the **Interpolate** slider. 
@@ -194,7 +194,7 @@ When set to *1*, the latent vector of B will be used as input to the decoder.
 
 ### Manual
 
-![Manual](img/manual.png)
+![Manual](docs/img/manual.png)
 
 Manual mode provides the user with direct control of the five band parametric equalizer using the controls at the bottom of the plugin.
 Unfortunately, the framework does not currently provide a means to link the parameters of the manual equalizer with the intelligent equalizer. 
@@ -208,7 +208,7 @@ This is applicable both in *Manual* mode as well as *Traverse* and *Semantic*, a
 
 ### Additional controls
 
-![Additional controls](img/control.png)
+![Additional controls](docs/img/control.png)
 
 #### Latent
 
@@ -236,7 +236,7 @@ A setting of *0* will have the effect of turning all gains to *0* and therefore 
 
 #### Automatic gain compensation
 
-![Auto gain](img/auto_gain.png)
+![Auto gain](docs/img/auto_gain.png)
 
 Since it is difficult to examine differences in signals that are perceived at different levels, an automatic gain compensation feature is included.
 When enabled, this control monitors the difference in the perceived loudness ([ITU-R BS.1770 Short-term loudness](https://www.mathworks.com/help/audio/ref/loudnessmeter-system-object.html)) between the input (unprocessed audio) and the output (post-EQ). 
@@ -250,7 +250,7 @@ Make sure to disable this control after setting the equalizer, or you may hear f
 
 #### In/Out gain
 
-![Gain](img/gain.png)
+![Gain](docs/img/gain.png)
 
 These are very straightforward controls that allow the user to adjust the level of the audio both before it enters the equalizer and after it is equalized.
 These controls prove useful when additional headroom is needed or to change the output level to match another source for comparison. 
@@ -263,7 +263,7 @@ This works by sending data from the plugin over UDP to the visualizer. This prog
 
 ### Equalizer transfer function
 
-![Transfer function](img/tf.gif)
+![Transfer function](docs/img/tf.gif)
 
 Using the [dsp.DynamicFilterVisualizer](https://www.mathworks.com/help/dsp/ref/dsp.dynamicfiltervisualizer.html), 
 the current filter coefficients from **flowEQ** are displayed on a magnitude response plot. 
@@ -272,7 +272,7 @@ Traversing the latent space and observing these transfer functions lends insight
 
 ### Latent space embedding
 
-![Latent](img/latent.gif)
+![Latent](docs/img/latent.gif)
 
 This visualization shows the physical location of the current latent code within the N dimensional latent space of the current model. 
 As shown in the animation above, when the user changes the **Latent** control in the plugin, the plot transitions from a 2D to a 2D plot. 
@@ -299,7 +299,7 @@ the parametric equalizer has become the defacto format for providing control ove
 These equalizers often feature multiple bands, each of with their own center frequency, gain, and Q controls. 
 This provides the audio engineer with great freedom over the shape of the filters' transfer function.
 
-![GML 8200](img/gml.jpg)
+![GML 8200](docs/img/gml.jpg)
 > GML 8200 (Legendary Class A, 2-channel, 5-band parametric equalizer)
 
 While the parametric equalizer provides a well designed interface, it requires a number of skills on the part of the audio engineer to be utilized effectively.
@@ -324,7 +324,7 @@ That is to say, the entire autoencoder model, **d(e(x))**, simply takes the orig
 In order for this structure to prove useful, the encoder and decoder functions must be able to effectively transform the data without creating too great a loss of information.
 This is most often achieved by implementing the encoder and decoder as neural networks, which are then trained to have weights which most effectively perform the job of down-sampling an input and then reconstructing with as little error as possible. 
 
-![Autoencoder](img/ae.png)
+![Autoencoder](docs/img/ae.png)
 
 For our application we want to use the autoencoder as a dimensionality reduction mechanism that allows users to use 1, 2, or 3 sliders to fully control all 13 knobs of the five band parametric equalizer. 
 This means that the input to the encoder is a 13 dimensional vector, the hidden layer is a vector of size 1, 2, or 3, and the decoder maps vectors from these lower dimensional spaces back to 13 dimensional vectors that hopefully closely match those of the original input.
@@ -338,7 +338,7 @@ In this case we use the [SAFE-DB dataset](http://www.semanticaudio.co.uk/dataset
 This dataset contains samples of parametric equalizer settings along with semantic descriptors of the resultant filter.
 These samples were collected using [their equalizer](https://github.com/semanticaudio/SAFE), shown below.
 
-![SAFE Equalizer](img/safe-eq.png)
+![SAFE Equalizer](docs/img/safe-eq.png)
 
 ### β-VAE
 
@@ -379,7 +379,7 @@ It also appears that the **y** dimension encodes some notion of 'intensity' or '
 where as you move in the positive **y** direction the *warm* and *bright* curves become more *warm* or more *bright*.
 
 
-![Training manifold](img/2d_beta_0.010_200epochs_1_crop.gif)
+![Training manifold](docs/img/2d_beta_0.010_200epochs_1_crop.gif)
 > 2D manifold during training over 200 epochs (β = 0.010)
 
 This animation shows each of the training samples projected into the latent space via the encoder during training. 
@@ -391,7 +391,7 @@ Second we observe that very early on in the training process (as soon as the **�
 the two classes become more oriented with the y-axis as a division between the two.
 Further increasing the **β** factor will force this more greatly.
 
-![Data projection](img/2d_beta_0.010_200epochs_2.gif)
+![Data projection](docs/img/2d_beta_0.010_200epochs_2.gif)
 > Training data projected into 2D latent space over 200 epochs (β = 0.010)
 
 ## Resources
