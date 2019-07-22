@@ -1,0 +1,9 @@
+.container {
+	margin-right: auto;
+	margin-left: auto;
+	max-width: 850px;
+}
+
+.img-center {
+	text-align: center;
+}
