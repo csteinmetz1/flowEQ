@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/styles.css">
-
     
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/x-mathjax-config">
@@ -28,6 +27,8 @@
     <![endif]-->
   </head>
   <body>
+    <bibtex src="research/ref.bib"></bibtex>
+
     <div class="container">
         <h1 class="mt-5">flowEQ</h1>
         <p>
@@ -406,14 +407,27 @@
             The user then has the ability to adjust this parameter and note how the structure of the latent space changes. 
         </p>
 
-
-        <h2 id="training">Training</h2>
+        <h2 id="implementation">Implementation</h2>
 
         <figure class="figure">
             <img src="img/blockdiagram.svg" class="img-fluid" alt="Block diagram">
         </figure>
 
-        <h2 id="evaluation">Evaluation</h2>
+        <p>
+            The block diagram above outlines the steps in buildings the plugin from pre-processing, to training, and finally to incorporation into the plugin. 
+        </p>
+
+        <h3 id="pre-processing">Pre-processing</h3>
+        <p>
+
+        </p>
+
+        <h3 id="training">Training</h3>
+        <p>
+
+        </p>
+
+        <h3 id="evaluation">Evaluation</h3>
 
         <figure class="figure">
             <img src="img/2d_beta_0.001_200epochs_1.gif" class="img-fluid" alt="2D manifold">
@@ -423,9 +437,33 @@
             <img src="img/2d_beta_0.001_200epochs_2.gif" class="img-fluid" alt="2D manifold">
         </figure>
 
+        <h3 id="bibliography">Bibliography</h3>
+
+        <div id="bibtex_display"></div>
+        <div class="bibtex_template">
+            <ul> 
+                <li>
+                <div class="if author">
+                <span class="author"></span>
+                </div>
+                <span class="if title">
+                <a class="url">
+                    <span class="title"></span>,
+                </a>
+                </span>
+                <div>
+                <span class="if journal"><em><span class="journal"></span></em></span>
+                <span class="if month"><span class="month"></span>,</span>
+                <span class="if year"><span class="year"></span>.</span>
+                </div>
+                </li>
+            </ul>
+        </div>
+            
     </div>
 
     <!-- Including Bootstrap JS (with its jQuery dependency) so that dynamic components work -->
+    <script type="text/javascript" src="https://cdn.rawgit.com/pcooksey/bibtex-js/5ccf967/src/bibtex_js.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
