@@ -57,20 +57,21 @@
             </div>
         </div>
 
-        <pre><code>
-        Windows
-        VST3: C:\Program Files\Common Files\VST3
+        <pre>
+        <code>
+Windows
+VST3: C:\Program Files\Common Files\VST3
 
-        macOS
-        AU: Macintosh HD/Library/Audio/Plug-Ins/Components
-        VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
+macOS
+AU: Macintosh HD/Library/Audio/Plug-Ins/Components
+VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
         </code></pre>
 
         <p>Skip to the <a href="#controls">Controls</a> section to learn about how to use the plugin, or read on to learn more about how it all works.</p>
 
         <figure class="figure">
                 <img src="img/full_plugin.png" class="img-fluid" alt="Full plugin">
-            <figcaption class="figure-caption">flowEQ plugin running with the custom GUI in REAPER</figcaption>
+            <figcaption class="figure-caption"><strong>flowEQ</strong> plugin running with the custom GUI in REAPER</figcaption>
         </figure>
 
         <div class="row">
@@ -79,7 +80,7 @@
             </div>
             <div class="col-sm">
                 <p>
-                    flowEQ is open source and all of the code is available on GitHub. 
+                    <strong>flowEQ</strong> is open source and all of the code is available on GitHub. 
                     You can build the plugin yourself using MATLAB or modify and train the models yourself, with easy tools for importing them into the plugin.
                 </p>
             </div>
@@ -104,7 +105,7 @@
             The process of learning to use these powerful timbral shaping tool is time consuming and requires a great deal of experience.
         </p>
         <p>
-            The goal of flowEQ is to provide a high-level interface to a traditional five band parametric equalizer that enables novice users to effectively apply timbral processing. 
+            The goal of <strong>flowEQ</strong> is to provide a high-level interface to a traditional five band parametric equalizer that enables novice users to effectively apply timbral processing. 
             In addition, this interface can provide experienced engineers with a new method of searching across multiple timbral profiles very quickly. 
             This also has the potential to unlock new creative effects, that would be challenging to achieve otherwise.
         </p>
@@ -271,7 +272,7 @@
         <h4>Equalizer transfer function</h4>
         <p>
             Using the <a href="https://www.mathworks.com/help/dsp/ref/dsp.dynamicfiltervisualizer.html">dsp.DynamicFilterVisualizer</a>, the current filter coefficients 
-            from flowEQ are displayed on a magnitude response plot. 
+            from <strong>flowEQ</strong> are displayed on a magnitude response plot. 
             This helps to provide greater visual feedback to the user on the equalizer parameters, since they cannot be linked to the knobs within the plugin itself. 
             Traversing the latent space and observing these transfer functions lends insight into the structure of the latent space for each trained model.
         </p>
@@ -290,7 +291,7 @@
 
         <h2 id="theory">Theory</h2>
         <p>
-            flowEQ uses a disentangled variational autoencoder (<a href="https://openreview.net/forum?id=Sy2fzU9gl">β-VAE</a>) 
+            <strong>flowEQ</strong> uses a disentangled variational autoencoder (<a href="https://openreview.net/forum?id=Sy2fzU9gl">β-VAE</a>) 
             in order to provide an intelligent interface for using a five band parametric equalizer. 
             This takes advantage of the assumption that certain locations within the parameter space of the equalizer are more relevant than others. 
             In this case we utilize the <a href="http://www.semanticaudio.co.uk/datasets/data/">SAFE-DB Equalizer dataset</a>, 
@@ -419,36 +420,179 @@
 
         <h3 id="pre-processing">Pre-processing</h3>
         <p>
+            A number of steps are taken in order to prepare the raw dataset for the training procedure. 
+            First we normalize all the equalizer parameters in the dataset so each is scaled between 0 and 1.
+            We achieve this by using the following normalization equation
 
+            $$ \large x_{normalized} = \frac{x_{unnormalized} - x_{min} }{x_{max} - x_{min} } , $$
+
+            where $x_{min}$ and $x_{max}$ are the minimum and maximum values the parameter can take on respectively. 
+            The model will only operate on normalized parameters. 
+            Therefore when we want to convert the output back to their unnormalized form we can use the following equation
+
+            $$ \large x_{unnormalized} = [x_{normalized} * (x_{max} - x_{min})] + x_{min} . $$
+        </p>
+
+        <p>
+            Next, since it is possible to represent the same equalizer transfer function with a different set of parameter.
+            This can be achieved by swapping the order of the three mid bands. 
+            To rectify this, we sort these bands in order of ascending center frequency before training to help the model learn more efficiently. 
+        </p>
+
+        <p>
+            In order to more effectively group the semantic descriptors, which generally have little consistency, we apply some light processing to clean them
+            and group them based on core meaning. This is an area that could be expanded in the future to get more effective transformations.
+            After this we count up the frequency of each descriptor and save out a new dataframe that contains these descriptors and their frequency.
+            Finally we shuffle all of the samples in the dataset before training and save out the new dataframe to file.
         </p>
 
         <h3 id="training">Training</h3>
         <p>
+            Training consists of training all 12 models, each with different hyperparameters. 
+            The details for these models are shown in the table below.
+            During training a new Keras model is constructed for each case and is trained for 200 epochs.
+            A batch size of 8 was used, as this was found to lead to the lowest loss at convergence.
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Model</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Latent</td><td>1D</td><td>1D</td><td>1D</td><td>1D</td><td>2D</td><td>2D</td><td>2D</td><td>2D</td><td>3D</td><td>3D</td><td>3D</td><td>3D</td>
+                </tr>
+                <tr>
+                    <td>β</td><td>0.000</td><td>0.001</td><td>0.01</td><td>0.02</td><td>0.000</td><td>0.001</td><td>0.01</td><td>0.02</td><td>0.000</td><td>0.001</td><td>0.01</td><td>0.02</td>
+                </tr>
+            </tbody>
+        </table>
 
+        <p> 
+            During training a method known as KL annealing is utilized. 
+            It has been shown that while training VAEs, the KL loss term often dominates at the start of the training process, and this ultimately leads to the models inability to learn.
+            To solve this we initialize the KL loss to 0, and then after training on only the reconstruction loss for a number of epochs, we increase it to the final value given by $\beta$.
         </p>
 
         <h3 id="evaluation">Evaluation</h3>
 
-        <figure class="figure">
-            <img src="img/2d_beta_0.001_200epochs_1.gif" class="img-fluid" alt="2D manifold">
-        </figure>
+        <p>
+            Since in our application we want to learn the space that is most conducive for applying parametric equalization traditional metrics may not be very applicable.
+            Instead we are interested largely in examining the structure of the latent space to see if it appears to have learned useful representations. 
+            In the future a more thorough evaluation of the performance of these models can be undertaken alongside a user study in order to uncover what kinds of latent space representations are most desireable. 
+        </p>
 
-        <figure class="figure">
-            <img src="img/2d_beta_0.001_200epochs_2.gif" class="img-fluid" alt="2D manifold">
-        </figure>
+        <div class="row">
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.000_200epochs_1.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.0$</figcaption>
+                </figure>
+            </div>
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.001_200epochs_1.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.001$</figcaption>
+                </figure>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.010_200epochs_1.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.01$</figcaption>
+                </figure>
+            </div>
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.020_200epochs_1.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.02$</figcaption>
+                </figure>
+            </div>
+        </div>
+        <p>
+            The first set of animations above show points sampled from the 2 dimensional latent space during training, each with different $\beta$ values.
+            The 2 dimensional latent code at each point has been passed through the decoder, converted to a 13 point vector, and then its transfer function plotted.
+            We observe that as $\beta$ increases the latent space becomes more regularized, and for the case where $\beta = 0.02$,
+            many of the points appear to decode to the same equalizer transfer function.
+            This is an example of what might be considered over-regularization. 
+        </p>
+        <p>
+            Even though we efficiently represented the data, (using just a single dimension as will be evident in the next set of animations)
+            the reconstruction error is greater and we are no longer to represent as much diversity among samples.
+            Meanwhile, in the case where $\beta = 0.000$, we can see the structure of the latent space is less neatly organized. 
+            It appears that the cases where $\beta = 0.001$ and $\beta = 0.01$ may be the most useful as they both show a diversity in samples and are well structured. 
+            From this conclusion we choose $\beta = 0.001$ to be the default within the plugin, but the user is free to adjust this.
+        </p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.000_200epochs_2.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.0$</figcaption>
+                </figure>
+            </div>
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.001_200epochs_2.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.001$</figcaption>
+                </figure>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.010_200epochs_2.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.0$1</figcaption>
+                </figure>
+            </div>
+            <div class="col-md-6">
+                <figure class="figure">
+                    <img src="img/2d_beta_0.020_200epochs_2.gif" class="img-fluid" alt="2D manifold">
+                    <figcaption class="figure-caption text-center">$\beta = 0.02$</figcaption>
+                </figure>
+            </div>
+        </div>
+
+        <p>
+            In this set of animations, instead of sampling from the latent space with the decoder, 
+            we pass the training data through the encoder, projecting it into the latent space.
+            Since only parameters with warm and bright descriptors were used, we observe how these two classes are organized.
+        </p>
+
+        <p>
+            As we noted above, in the case for $\beta=0.02$, it is clear that the data is being projected largely on the y-axis only.
+            We observe similar trends from the previous set of animations. 
+            The models with $\beta = 0.001$ and $\beta = 0.01$ appear to have regularized and well organized latent spaces, the $\beta = 0.01$ model perhaps looking the best.
+        </p>
+
+        <h3 id="future-directions">Future directions</h3>
+
+        <p>
+            <strong>flowEQ</strong> is still very much a proof of concept, and the current implementation is somewhat limited by the MATLAB framework.
+            Below are some future areas of development to further improve the plugin and expand its functionality.
+        </p>
+
+        <ul>
+            <li>Meta-parameters that link the latent space equalizer to the manual equalizer controls</li>
+            <li>Adaptive latent space (i.e. conditional VAE) conditioned on audio content</li>
+            <li>Find/collect more data with semantic descriptors to expand the diversity of the latent space</li>
+            <li>Further hyperparameter optimization to determine training time, $\beta$, network architecture, etc.</li>
+            <li>Lightweight interface version with very few parameters broken out to aid novice users</li>
+        </ul>
 
         <h3 id="bibliography">Bibliography</h3>
 
         <div id="bibtex_display"></div>
         <div class="bibtex_template">
-            <ul> 
-                <li>
+            <p>
                 <div class="if author">
                 <span class="author"></span>
                 </div>
                 <span class="if title">
                 <a class="url">
-                    <span class="title"></span>,
+                    <span class="title"></span>
                 </a>
                 </span>
                 <div>
@@ -456,8 +600,7 @@
                 <span class="if month"><span class="month"></span>,</span>
                 <span class="if year"><span class="year"></span>.</span>
                 </div>
-                </li>
-            </ul>
+            </p>
         </div>
             
     </div>
