@@ -50,9 +50,9 @@
                 <p>Just download the proper plugin for for you platform and move it to the plugin directory for your OS.</p>
             </div>
             <div class="col-sm">
-                <a class="btn btn-dark" href="#" role="button">macOS VST</a>
-                <a class="btn btn-dark" href="#" role="button">macOS AU</a>
-                <a class="btn btn-dark" href="#" role="button">Windows VST</a>
+                <a class="btn btn-dark" id="1.0.0" href="https://drive.google.com/file/d/11X4lM9M5NxTnsT7-GjOpfHm04TPUx6lG/view?usp=sharing" role="button">macOS VST</a>
+                <a class="btn btn-dark" id="1.0.0" href="https://drive.google.com/file/d/1ai83RMaGxTwqgp6h6PLlcHHm_Y-t-iPC/view?usp=sharing" role="button">macOS AU</a>
+                <a class="btn btn-dark disabled" href="#" role="button">Windows VST</a>
             </div>
         </div>
 
@@ -68,13 +68,13 @@
         <p>Skip to the <a href="#controls">Controls</a> section to learn about how to use the plugin, or read on to learn more about how it all works.</p>
 
         <figure class="figure">
-                <img src="img/full_plugin.png" class="img" alt="Full plugin">
+                <img src="img/full_plugin.png" class="img-fluid" alt="Full plugin">
             <figcaption class="figure-caption">flowEQ plugin running with the custom GUI in REAPER</figcaption>
         </figure>
 
         <div class="row">
             <div class="col-sm-2">
-                <a class="btn btn-dark" href="#" role="button">GitHub</a>
+                <a class="btn btn-dark" href="https://github.com/csteinmetz1/flowEQ" role="button">GitHub</a>
             </div>
             <div class="col-sm">
                 <p>
@@ -110,7 +110,7 @@
 
         <h2 id="plugin">Plugin</h2>
         <p>
-            The plugin is built using the MATLAB Audio Toolbox and Python. 
+            The plugin is built using the <a href="https://www.mathworks.com/products/audio.html">MATLAB Audio Toolbox</a> and Python. 
             The autoencoder models are first trained using <a href="https://keras.io/">Keras</a> (<a href="https://www.tensorflow.org/beta/">tf.keras in TensorFlow 2.0 beta</a>). 
             These trained models are later converted to MATLAB code and incorporated into the plugin. 
             Parameters are exposed that allow the user to choose among these different models and then directly interact with them in real-time. 
@@ -155,7 +155,7 @@
 
         <div class="img-center">
             <figure class="figure">
-                <img src="img/semantic.png" class="img-fuild" alt="Semantic">
+                <img src="img/semantic.png" class="img-fluid" alt="Semantic">
             </figure>
         </div>
 
@@ -182,7 +182,7 @@
 
         <div class="img-center">
             <figure class="figure">
-                <img src="img/control.png" class="img-fuild" alt="Additional Controls">
+                <img src="img/control.png" class="img-fluid" alt="Additional Controls">
             </figure>
         </div>
 
@@ -283,7 +283,7 @@
         </p>
 
         <figure class="figure">
-            <img src="img/demo.gif" class="img-center" alt="Demo">
+            <img src="img/demo.gif" class="img-fluid" alt="Demo">
             <figcaption class="figure-caption">The Visualizer running with the plugin as MATLAB code</figcaption>
         </figure>
 
@@ -383,8 +383,29 @@
 
         <h3>β-VAE</h3>
         <p>
+            We can extend the VAE further by adding a new term to the loss function, $\beta$.
+            It is simply a weighting factor applied to the KL divergence in the loss function (shown below in a simplified version of the original VAE loss).
+            
+            $$ \large L_{VAE} = - \mathbb{E}_z [ {\log{p_\phi(x | z)}} ] + \beta \mathbb{KL} (q(z | x) || p(z)).$$
 
+            This parameter allows us to adjust the importance of the KL divergence during training and this has an interesting effect.
+            As $\beta$ is increased the model becomes more regularized and encourages each latent disentanglement.
         </p>
+        <p>
+            Disentanglement is the notion that each latent variable more directly controls a single ground truth factor of the output.
+            For example, in the case of images of faces, this means that a single dimension encodes age of the subject, for instance. 
+            Greater disentanglement is often desired as the latent space may become more interpretable and our representation more efficient.
+            It will use the minimal number of latent variables required. 
+            A large $\beta$ may cause some latent dimensions to end up unused, as the entirety of the output can be modeled with fewer dimensions.
+        </p>
+        <p>
+            In the case of the parametric equalizer we are not concerned with disentanglement in the same way as with that of generating faces.
+            Since we are using models with 1, 2, and 3 latent dimensions, we are naturally limited to a small number of possible disentangled controls.
+            What we desire is to arrange the latent space in such a way that makes searching for the desired timbre more efficient. 
+            To expand the possible options multiple models are trained, each with a different value of $\beta$ (0.0, 0.001, 0.01, 0.02).
+            The user then has the ability to adjust this parameter and note how the structure of the latent space changes. 
+        </p>
+
 
         <h2 id="training">Training</h2>
 
@@ -395,7 +416,11 @@
         <h2 id="evaluation">Evaluation</h2>
 
         <figure class="figure">
-            <img src="img/2d_beta_0.000_200epochs_1.gif" class="img-fluid" alt="Block diagram">
+            <img src="img/2d_beta_0.001_200epochs_1.gif" class="img-fluid" alt="2D manifold">
+        </figure>
+
+        <figure class="figure">
+            <img src="img/2d_beta_0.001_200epochs_2.gif" class="img-fluid" alt="2D manifold">
         </figure>
 
     </div>
