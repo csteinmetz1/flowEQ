@@ -362,7 +362,7 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
     
         <p>
             The KL divergence measures how much information is lost if we use $q(z|x)$ to represent $p(z|x)$, and therefore is an appropriate metric to attempt to minimize in our loss function. 
-            We will not go through a complete derivation of the loss function (refer the the good explanation in this video), but we find that we arrive at a new loss function given by
+            We will not go through a complete derivation of the loss function (refer the the good explanation in this <a href="https://youtu.be/uaaqyVS9-rM">video</a>), but we find that we arrive at a new loss function given by
             
             $$ \large L_{VAE}(\theta,\phi) = \sum_{i=1}^{n} - \mathbb{E}_{z \sim q_{\theta}(z|x_i)} [ {\log{p_\phi(x_i | z)}} ] + \mathbb{KL} (q_\theta(z | x_i) || p(z)).$$
         </p>
@@ -520,7 +520,7 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
         </p>
         <p>
             Even though we efficiently represented the data, (using just a single dimension as will be evident in the next set of animations)
-            the reconstruction error is greater and we are no longer to represent as much diversity among samples.
+            the reconstruction error is greater and we are no longer able to represent as much diversity among samples.
             Meanwhile, in the case where $\beta = 0.000$, we can see the structure of the latent space is less neatly organized. 
             It appears that the cases where $\beta = 0.001$ and $\beta = 0.01$ may be the most useful as they both show a diversity in samples and are well structured. 
             From this conclusion we choose $\beta = 0.001$ to be the default within the plugin, but the user is free to adjust this.
@@ -565,6 +565,77 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
             As we noted above, in the case for $\beta=0.02$, it is clear that the data is being projected largely on the y-axis only.
             We observe similar trends from the previous set of animations. 
             The models with $\beta = 0.001$ and $\beta = 0.01$ appear to have regularized and well organized latent spaces, the $\beta = 0.01$ model perhaps looking the best.
+        </p>
+
+        <h3 id="plugin-implementation">Plugin Implementation</h3>
+
+        <p>
+            With the models trained and examined, we now need to connect them to a parametric equalizer and build an interface for users.
+            To achieve this, we use the <a href="https://www.mathworks.com/products/audio.html">MATLAB Audio Toolbox</a>, which provides the ability to turn MATLAB code into VST/AU plugins.
+            While this toolbox has some limitations (few GUI options and special considerations for code generation), it provides a convenient avenue to implement and prototype our plugin.
+            The diagram below provides and overview of the structure of the plugin.
+        </p>
+
+        <figure class="figure">
+            <img src="img/pluginblockdiagram.svg" class="img-fluid" alt="Plugin block diagram">
+            <figcaption class="figure-caption">Inner workings of the MATLAB plugin code</figcaption>
+        </figure>
+    
+        <h4 id="audio-processing">Audio processing</h4>
+
+        <p>
+            The audio processing path is fairly straightforward and is made up of three gains blocks and the five bands of the parametric equalizer.
+            The input and output gain blocks are controlled by the user directly with sliders on the GUI.
+            The compensation gain block attempts to scale the output in an effort to keep the output signal at a perceptual loudness level equal of that to the input, post input gain.
+        </p>
+
+        <p>
+            As mentioned in the <a href="#controls">Controls</a> section, the ITU-R BS.1770 Short-term loudness is measured before and after the equalizer section.
+            The post-EQ loudness is subtracted from the pre-EQ loudness to determine a correction factor in dB. 
+            This works since the loudness measurement, in dB LUFS, corresponds to direct changes in dBFS.
+            The Update rate parameter determines how many frames of audio are sampled before the gain compensation value is updated. 
+            The Gain range parameter determines the maximum amount of gain compensation to apply. If the gain compensation value exceeds the set value it will be capped at the maximum value. 
+            This is included to prevent situations where the gain changes rapidly and causes undesirable shifts in output volume.
+        </p>
+
+
+        <figure class="figure text-center">
+            <img src="img/safe-eq.png" class="img-fluid w-75" alt="Plugin block diagram">
+            <figcaption class="figure-caption">SAFE Equalizer VST plugin running Logic Pro</figcaption>
+        </figure>
+
+        <p>
+            The five equalizer bands are implemented using biquad filter design equations for shelving and peaking filters.
+            The implementation included in the plugin is based directly on the <a href="https://docs.juce.com/master/classIIRCoefficients.html">JUCE library IIR filter implementation</a>, 
+            since the original <a href="https://github.com/semanticaudio/SAFE/tree/master/SAFEEqualiser">SAFE Equalizer</a> used this library.
+            Their implementation appears to be based on the infamous <a href="https://www.w3.org/2011/audio/audio-eq-cookbook.html">Cookbook formulae</a> by Robert Bristow-Johnson.
+            Update flags are used to signal whenever the user has changed a parameter that controls the equalizer, and this forces the coefficients for all the filters to be updated based on the new parameters.
+            Additionally, bypass controls are provided for each band, which when bypassed, will simply skip over the respective stage during the audio processing loop.
+        </p>
+
+        <h4 id="decoder-network">Decoder network</h4>
+
+        <p>
+            In order to provide an interface that allows for the user to sample from the 12 trained models, the plugin needs to implement the decoder network.
+            This then allows for the user to provide latent codes, which can then be converted directly to equalizer parameters.
+            Ideally, the easiest method to achieve this would be to use the <a href="https://www.mathworks.com/help/deeplearning/ref/importkerasnetwork.html"><code>importKerasNetwork</code></a> function from the <a href="https://www.mathworks.com/help/deeplearning/index.html">Deep Learning Toolbox</a>.
+            This would load the HDF5 model weights and architecture after training in Keras and implement the model as a <a href="https://www.mathworks.com/help/deeplearning/ref/dagnetwork.html"><code>DAGNetwork</code></a> object.
+            Unfortunately, there is limited code generation support for these objects, and focus has been placed on <a href="https://www.mathworks.com/help/deeplearning/deep-learning-code-generation.html">targeting specific hardware and GPUs.</a>
+            (Although, there is some cool functionality, like the <a href="https://www.mathworks.com/help/deeplearning/examples/code-generation-for-deep-learning-on-raspberry-pi.html">ability to compile code for ARM targets like the Raspberry Pi</a>)
+            This won't work for our use case though. We need the ability to compile plugins for many different CPU targets across operating systems. 
+        </p>
+
+        <p>
+            To solve this, we simply implement the network in pure MATLAB code. 
+            This is fairly simple since our network is relatively small. 
+            And it should be noted that not only does a small network mean that it is easier to implement, it means it is also much faster to run.
+            We could attempt to use the <a href="https://www.mathworks.com/help/deeplearning/ug/deploy-shallow-neural-network-functions-and-objects.html">legacy Neural Network functions</a>,
+            which are supported for code generation using the <a href="https://www.mathworks.com/help/deeplearning/ref/genfunction.html"><code>genFunction</code></a>.
+            The issue is since these shallow networks don't have all of the same functionality as Keras (namely the same activation functions) it will be challenging to use the weights from the Keras models.
+        </p>
+
+        <p>
+            Instead, we simply load the weights as matrices and create a simple object that has the functions needed to implement the network exactly as it is implemented in Keras.
         </p>
 
         <h3 id="future-directions">Future directions</h3>
