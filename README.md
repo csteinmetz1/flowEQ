@@ -4,6 +4,22 @@ flowEQ presents a new way to navigate equalization in the music production proce
 
 ![flowEQ demo](docs/img/demo.gif)
 
+## Overview
+
+**flowEQ** uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via a parametric equalizer. 
+By using the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer.
+This methodology promotes using one's ears to determine the proper EQ settings instead of looking at transfer functions or specific frequency controls.
+Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of the 12 train models.
+
+### Applications
+
+- Quick and easy timbral adjustments
+- Automated timbral shifts over time for creative effects
+- Powerful 'tone controls' for users in a playback/listening setting
+
+![Full plugin](docs/img/full_plugin.png)
+> VST plugin with custom GUI shown running in REAPER
+
 ## Table of contents
 
 - [Overview](#overview)
@@ -23,22 +39,6 @@ flowEQ presents a new way to navigate equalization in the music production proce
 	- [Training](#training)
 - [Resources](#resources)
 - [License](#license)
-
-## Overview
-
-**flowEQ** uses a disentangled variational autoencoder (β-VAE) in order to provide a new modality for modifying the timbre of recordings via a parametric equalizer. 
-By using the trained decoder network, the user can more quickly search through the configurations of a five band parametric equalizer.
-This methodology promotes using one's ears to determine the proper EQ settings instead of looking at transfer functions or specific frequency controls.
-Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of the 12 train models.
-
-### Applications
-
-- Quick and easy timbral adjustments
-- Automated timbral shifts over time for creative effects
-- Powerful 'tone controls' for users in a playback/listening setting
-
-![Full plugin](docs/img/full_plugin.png)
-> VST plugin with custom GUI shown running in REAPER
 
 ## Setup
 
