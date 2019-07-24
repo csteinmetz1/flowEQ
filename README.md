@@ -11,6 +11,8 @@ By using the trained decoder network, the user can more quickly search through t
 This methodology promotes using one's ears to determine the proper EQ settings instead of looking at transfer functions or specific frequency controls.
 Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of the 12 train models.
 
+Download the VST/AU plugin from [flowEQ.ml](https://flowEQ.ml)
+
 ### Applications
 
 - Quick and easy timbral adjustments
@@ -32,11 +34,6 @@ Two main modes of operation are provided (**Traverse** and **Semantic**), which 
     - [Manual](#manual)
     - [Additional](#additional-controls)
 - [Visualizer](#visualizer)
-- [Theory](#theory)
-    - [Autoencoder](#autoencoder)
-    - [Dataset](#dataset)
-    - [β-VAE](#β-vae)
-	- [Training](#training)
 - [Resources](#resources)
 - [License](#license)
 
@@ -44,8 +41,6 @@ Two main modes of operation are provided (**Traverse** and **Semantic**), which 
 
 Pre-compiled binaries are available on the [project website](http://flowEQ.ml). Just download the one for your platform and add it to the system directory designed for audio plugins.
 Restarting your DAW or forcing it to re-scan the audio plugin directories should make it appear. 
-
-Skip over to the [Controls](#controls) section to learn how to use the plugin.
 
 ```
 Windows
@@ -56,6 +51,7 @@ AU: ​Macintosh HD/Library/Audio/Plug-Ins/Components
 VST3: ​Macintosh HD/Library/Audio/Plug-Ins/VST3
 ```
 
+Skip over to the [Controls](#controls) section to learn how to use the plugin.
 Read on if you are interested in running the plugin as MATLAB code, compiling it yourself, or modifying the models. 
 
 ### MATLAB
@@ -291,105 +287,10 @@ the visualizer will not run correctly as a compiled plugin.
 To use the visualizer you can run two instances of MATLAB, one in which the plugin is run as MATLAB code, and the other which runs the visualizer.
 The visualizer should work on Windows as a VST, but this has yet to be tested.
 
-## Theory
-
-The parametric equalizer is a staple in the audio engineer's toolbox for shaping recordings. 
-First introduced in the [seminal AES paper](http://www.aes.org/e-lib/browse.cfm?elib=16171) by George Massenburg in 1972, 
-the parametric equalizer has become the defacto format for providing control over timbral shaping.
-These equalizers often feature multiple bands, each of with their own center frequency, gain, and Q controls. 
-This provides the audio engineer with great freedom over the shape of the filters' transfer function.
-
-![GML 8200](docs/img/gml.jpg)
-> GML 8200 (Legendary Class A, 2-channel, 5-band parametric equalizer)
-
-While the parametric equalizer provides a well designed interface, it requires a number of skills on the part of the audio engineer to be utilized effectively.
-These include an understanding of the relationship of individual frequency ranges to different timbres as well as filter shapes (peaking, shelves, and Q factor).
-The process of learning to use these powerful timbral shaping tools is time consuming and requires a great deal of experience.
-
-The goal of **flowEQ** is to provide a high-level interface to a traditional five band parametric equalizer that enables novice users to effectively apply timbral processing.
-In addition, this interface can provide experienced engineers with a new method of searching across multiple timbral profile very quickly. 
-This also has the potential to unlock new creative effects, that would be challenging to achieve otherwise.
- 
-### Autoencoder
-
-To realize this goal we utilize a disentangled variational autoencoder (β-VAE), but first let us look over the vanilla autoencoder.
-
-An autoencoder is a architecture comprised of two functions. The first is the encoder function. 
-This function, **e(x)**, takes as input our high dimensional data, **x**, and transforms it to a lower dimension space. 
-This is known as the *latent space*, shown as the green, Hidden elements in the figure below. 
-The second function, known as the decoder, **d(z)**, takes as input a lower dimension vector from the latent space,
-and produces an output with the same dimensionality of **x**, the original input. 
-That is to say, the entire autoencoder model, **d(e(x))**, simply takes the original input and attempts to reconstruct it after passing it through a bottle-neck.
-
-In order for this structure to prove useful, the encoder and decoder functions must be able to effectively transform the data without creating too great a loss of information.
-This is most often achieved by implementing the encoder and decoder as neural networks, which are then trained to have weights which most effectively perform the job of down-sampling an input and then reconstructing with as little error as possible. 
-
-![Autoencoder](docs/img/ae.png)
-
-For our application we want to use the autoencoder as a dimensionality reduction mechanism that allows users to use 1, 2, or 3 sliders to fully control all 13 knobs of the five band parametric equalizer. 
-This means that the input to the encoder is a 13 dimensional vector, the hidden layer is a vector of size 1, 2, or 3, and the decoder maps vectors from these lower dimensional spaces back to 13 dimensional vectors that hopefully closely match those of the original input.
-Once this model is trained, we need only to use the decoder and provide the user with the ability to sample from the latent space. 
-Each point within this latent space (controlled via 1, 2, or 3 sliders) corresponds to a set of equalizer parameters. 
-
-### Dataset
-
-In order to train this model we need an appropriate dataset. 
-In this case we use the [SAFE-DB dataset](http://www.semanticaudio.co.uk/datasets/data/).
-This dataset contains samples of parametric equalizer settings along with semantic descriptors of the resultant filter.
-These samples were collected using [their equalizer](https://github.com/semanticaudio/SAFE), shown below.
-
-![SAFE Equalizer](docs/img/safe-eq.png)
-
-### β-VAE
-
-Now, back to the disentangled variational autoencoder (β-VAE). 
-The variational autoencoder is an improvement on the vanilla autoencoder. 
-Instead of mapping the input to a fixed vector, we map it to a distribution, 
-meaning that our encoder learns to produce a mean and standard deviation (since we use a Gaussian distribution).
-During training we want the model to learn a distribution that matches as closely as possible the true distribution that created the data.
-To do this, we add an additional factor to the loss function, the Kullback-Leibler (KL) divergence.
-This is a measure of the similarity between two distributions, hence forcing the learned distribution closer to actual distribution.
-
-The VAE has the nice quality that the learned space becomes more regularized, and hence smoother. 
-This may not (and often isn't) the case with a vanilla autoencoder. 
-In our application this means that as the user samples from the latent space the generated equalizer settings with smoothly transition.
-
-Introducing the **β** factor simply applies a weighting to the KL divergence in the loss function. 
-As we increase **β** we force the model to more closely match the actual data distribution with a stronger constraint of the latent space.
-This has the effect of disentangling the representation, using the latent space more efficiently is some cases.
-Although, greater regularization often comes at the cost of worse reconstruction, therefore there is interest in balancing this factor to the application.
-
-In this case, we train a total of 12 models, That is 1D, 2D, and 3D models with four different **β** values for each (0.0, 0.001, 0.01, and 0.02).
-Each of these models are broken out in the plugin and the user can then control how much regularization desired and directly interact with the model.
-
-For a more in-depth, mathematical investigation of these topics refer the [project site](http://flowEQ.ml).
-
-### Training
-
-During training we can observe empirically what was outlined in the previous sections.
-The animation below shows samples generated with the decoder every 10 epochs during training.
-Each transfer function plot refers to the reconstruction from a point in the 2D latent space, with the center most plot corresponding to **x**=0, **y**=0. 
-We can observe as the model is trained the transfer function shapes become more regularized, and moving from one to next is done so smoothly.
-It also has the nice property that and embedding at [0,0] represents a nearly unit gain filter. 
-
-Moreover, since this model was trained with **β**=0.01 ('some' regularization),
-we can observe that the model as disentangled the representation so that the **x** dimension encodes the transformation from *warm* (left) to *bright* (right).
-This is further confirmed by the second animation. 
-It also appears that the **y** dimension encodes some notion of 'intensity' or 'strength',
-where as you move in the positive **y** direction the *warm* and *bright* curves become more *warm* or more *bright*.
-
+## Trained models
 
 ![Training manifold](docs/img/2d_beta_0.010_200epochs_1_crop.gif)
 > 2D manifold during training over 200 epochs (β = 0.010)
-
-This animation shows each of the training samples projected into the latent space via the encoder during training. 
-(Training data is used since the dataset is very small and therefore harder to visualize with the small test set, and also because we are not wholly concerned about over-fitting in this application). 
-During this process we can observe two clear trends. 
-First, over the 200 epochs the points become centered around [0,0]. 
-This is a nice quality and a result of our regularized, probabilistic latent space. 
-Second we observe that very early on in the training process (as soon as the **β** factor is introduced at epoch 50), 
-the two classes become more oriented with the y-axis as a division between the two.
-Further increasing the **β** factor will force this more greatly.
 
 ![Data projection](docs/img/2d_beta_0.010_200epochs_2.gif)
 > Training data projected into 2D latent space over 200 epochs (β = 0.010)
