@@ -629,14 +629,39 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
             To solve this, we simply implement the network in pure MATLAB code. 
             This is fairly simple since our network is relatively small. 
             And it should be noted that not only does a small network mean that it is easier to implement, it means it is also much faster to run.
-            We could attempt to use the <a href="https://www.mathworks.com/help/deeplearning/ug/deploy-shallow-neural-network-functions-and-objects.html">legacy Neural Network functions</a>,
-            which are supported for code generation using the <a href="https://www.mathworks.com/help/deeplearning/ref/genfunction.html"><code>genFunction</code></a>.
-            The issue is since these shallow networks don't have all of the same functionality as Keras (namely the same activation functions) it will be challenging to use the weights from the Keras models.
+            We could attempt to use the <a href="https://www.mathworks.com/help/deeplearning/ug/deploy-shallow-neural-network-functions-and-objects.html">legacy Neural Network tools</a>,
+            which are supported for general C/C++ code generation using the <a href="https://www.mathworks.com/help/deeplearning/ref/genfunction.html"><code>genFunction</code> function</a>.
+            The issue is since this API doesn't have all of the same, modern functionality as Keras (namely the same activation functions) it will be challenging to use the weights from the Keras models.
         </p>
 
         <p>
-            Instead, we simply load the weights as matrices and create a simple object that has the functions needed to implement the network exactly as it is implemented in Keras.
+            Instead, we simply load the weights as matrices and create an object that has the functions needed to implement the network exactly as it is implemented in Keras.
+            The decoder network is a simple densely connected neural network, with a a hidden layer of 1024 units and an output layer of 13 units.
+            We can represent the first layer of the decoder with the following function,
+
+            $$ z = \text{ReLU}(x W_1 + b_1) $$
+
+            where $x$ is out input latent vector of 1, 2, or 3 dimensions, $W_1$ is the weight matrix for the first layer, $b_1$ is a vector of biases, and $\sigma$ is the ReLU activation function.
+
+            $$ \text{ReLU}(x) = max(0,x) $$
+
+            The output of this layer, $z$, is then fed as input to the output layer, 
+
+            $$\hat{y} = \sigma(z W_2 + b_2) $$
+
+            where $\hat{y}$ is the output, a 13 dimensional vector of normalized equalizer parameters, $W_2$ and $b_2$ are the weights and biases of the second layer, and $\sigma(x)$ is the sigmoid activation function.
+
+            $$ \sigma(x) = \frac{1}{1 + e^{-x}} $$
         </p>
+
+        <p>
+            This is all implemented in a fairly straightforward MATLAB class called <code>Decoder</code>.
+            Since the network is so small, inference times (a single forward pass through the decoder) are very fast, at around 300 microseconds per forward pass.
+            This makes real-time operation of the plugin feasible, to the point where the user doesn't even notice that a neural network is running as they interact with the sliders.
+            This is one of the biggest challenges with building real-time audio tools that incorporate machine learning.
+            As larger models are used they become nearly impossible to run in real-time audio applications without significant GPU acceleration.
+        </p>
+
 
         <h3 id="future-directions">Future directions</h3>
 
