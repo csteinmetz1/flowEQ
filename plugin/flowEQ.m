@@ -342,7 +342,7 @@ classdef flowEQ < audioPlugin & matlab.System
                     elseif plugin.gainRange == GainRange.medium
                         minGain = -12.0;
                         maxGain =  12.0;
-                    else   plugin.gainRange == GainRange.high
+                    elseif   plugin.gainRange == GainRange.high
                         minGain = -24.0;
                         maxGain =  24.0;
                     end
