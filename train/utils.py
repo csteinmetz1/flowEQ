@@ -14,15 +14,44 @@ xmax = np.array([ 12.0, 1000.0,  12.0, 3900.0, 10.0,  12.0, 4700.0, 10.0,  12.0,
 xmin = np.array([-12.0,   22.0, -12.0,   82.0,  0.1, -12.0,  180.0,  0.1, -12.0,   220.0,  0.1, -12.0,   580.0]);
 
 def normalize_params(x):
+    """ Take a set of equalizer parameters (1x13) and normalize them between 0 and 1.
 
+    Args:
+        x (ndarray) : 1x13 vector of raw, un-normalized equalizer parameters
+    
+    Returns:
+        y (ndarray) : 1x13 vector of normalized equalizer parameters.
+
+    """
     return (x - xmin) / (xmax - xmin);
 
 def denormalize_params(x):
+    """ Take a set of equalizer parameters (1x13) and denormalize them back to the original scaling.
+
+    Args:
+        x (ndarray) : 1x13 vector of normalized equalizer parameters
     
+    Returns:
+        y (ndarray) : 1x13 vector of raw, un-normalized equalizer parameters.
+
+    """
     return (x * (xmax - xmin)) + xmin;
 
 def sort_params(x):
+    """ Take a set of equalizer parameters (1x13) and sort the three center-most bands based on their center frequency.
 
+    The same equalizer transfer function can be represented in multiple ways by simply swapping the ordering
+    of the three center-most bands of the five band parametric equalizer. We want to sort all the samples in the dataset
+    so that the lowest frequency filter is always assigned to the first band and so on in ascending order. 
+    This will make things easier for the model during training.
+
+    Args:
+        x (ndarray) : 1x13 vector of unsorted equalizer parameters
+    
+    Returns:
+        y (ndarray) : 1x13 vector of sorted equalizer parameters.
+
+    """
     y = x.copy()
 
     # sort the frequencies 
@@ -52,7 +81,16 @@ def sort_params(x):
     return y
 
 def scale_gains(x):
-    pass
+    """ (NOT IMPLEMENTED) 
+        
+    Pondering ways in which we might scale or normalize the five gain values across the EQ.
+    Sometimes samples in the dataset feature all negative gains. 
+    The resultant transfer function is then the equivalent to another set of parameters simply 
+    with a bulk magnitude adjustment across the entire frequency range. It would be nice to have
+    some way to handle this so the model learns better representations.
+
+    """
+    print("seriously, don't call this function yet...")
 
 def make_lowshelf(g, fc, Q, fs=44100):
     """Generate filter coefficients for 2nd order Lowshelf filter.
@@ -200,8 +238,8 @@ def params2sos(x, fs):
     Takes a vector with shape (13,) of denormalized EQ parameters
     and calculates filter coefficients for each of the 5 filters.
     These coefficients (2nd order sections) are then stored into a
-    single (5,6) matrix. This matrix can be fed to scipy.signal.sosfreqz()
-    in order to determine the frequency response of the cascase of
+    single (5,6) matrix. This matrix can be fed to `scipy.signal.sosfreqz()`
+    in order to determine the frequency response of the cascasd of
     all five biquad filters.
 
     Args:
@@ -224,7 +262,7 @@ def params2sos(x, fs):
     b4, a4 = make_peaking (x[8],  x[9],  x[10], fs=fs)
     b5, a5 = make_highself(x[11], x[12], 0.71,  fs=fs)
 
-    # stuff coefficents into second order sections structure
+    # stuff coefficients into second order sections structure
     sos = [[np.concatenate([b1, a1])],
            [np.concatenate([b2, a2])],
            [np.concatenate([b3, a3])],
@@ -234,14 +272,14 @@ def params2sos(x, fs):
     return np.array(sos).reshape(5,6)
 
 def subplot_tf(x, fs, ax, zeroline=True, ticks=False, denorm=True):
-
+    
     if denorm:
         x = denormalize_params(x)
 
     # convert eq params to second order sections
     sos = params2sos(x, fs)
 
-    # calcuate filter response
+    # calculate filter response
     f, h = sg.sosfreqz(sos, worN=2048, fs=fs)	
 
     # plot the magnitude respose
@@ -268,7 +306,7 @@ def plot_tf(x, fs=44100, plot_title=None, to_file=""):
     # convert eq params to second order sections
     sos = params2sos(x, fs)
 
-    # calcuate filter response
+    # calculate filter response
     f, h = sg.sosfreqz(sos, worN=2048, fs=fs)	
 
     # plot the magnitude respose

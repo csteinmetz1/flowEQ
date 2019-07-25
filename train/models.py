@@ -39,20 +39,21 @@ def build_simple_autoencoder(latent_dim, input_shape):
 
 def build_single_layer_autoencoder(latent_dim, input_shape):
     """
-    Construct a simple single layer autoencoder.
+    Construct a simple single vanilla autoencoder.
+
+    Args:
+        latent_dim  (int)   : Number of latent dimensions of the autoencoder 
+        input_shape (int)   : Size of the input vector
+    
+    Returns:
+        autoencoder (model) : Keras model of complete autoencoder
+        encoder     (model) : Keras model of the encoder 
+        decoder     (model) : Keras model of the decoder
 
     This tends to give better performance than bigger AE.
     Also initialization is very important for performance. 
     Trying to restart a few times gives best results.
-
-     1 -> 
-     2 -> 
-     3 -> 
-    ...
-    10 -> 
-
     """
-
     inputs = tf.keras.Input(shape=(input_shape,))
     x = layers.Dense(256, activation='relu')(inputs)
     z = layers.Dense(latent_dim, activation='relu')(x)
@@ -75,10 +76,18 @@ def build_single_layer_autoencoder(latent_dim, input_shape):
 
 def build_multiple_layer_autoencoder(latent_dim, input_shape):	
     """
-    Construct an autoencoder with more layers.
+    Construct a multi-layer vanilla autoencoder.
+
+    Args:
+        latent_dim  (int)   : Number of latent dimensions of the autoencoder 
+        input_shape (int)   : Size of the input vector
+    
+    Returns:
+        autoencoder (model) : Keras model of complete autoencoder
+        encoder     (model) : Keras model of the encoder 
+        decoder     (model) : Keras model of the decoder
 
     """
-
     inputs = tf.keras.Input(shape=(input_shape,))
     x = layers.Dense(13, activation='relu')(inputs)
     x = layers.Dense(9, activation='relu')(x)
@@ -107,16 +116,19 @@ def build_multiple_layer_autoencoder(latent_dim, input_shape):
 
 def build_single_layer_variational_autoencoder(latent_dim, input_shape, beta):
     """
-    Construct a simple single layer variational autoencoder.
+    Construct simple single layer variational autoencoder.
 
-     1 -> 
-     2 -> 
-     3 -> 
-    ...
-    10 -> 
+    Args:
+        latent_dim  (int)   : Number of latent dimensions of the autoencoder 
+        input_shape (int)   : Size of the input vector
+        beta        (float) : Disentanglement factor
+    
+    Returns:
+        autoencoder (model) : Keras model of complete autoencoder
+        encoder     (model) : Keras model of the encoder 
+        decoder     (model) : Keras model of the decoder
 
     """
-
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
     x = layers.Dense(units=1024, activation='relu')(inputs)
@@ -154,16 +166,19 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape, beta):
 
 def build_multiple_layer_variational_autoencoder(latent_dim, input_shape, beta):
     """
-    Construct a simple single layer variational autoencoder.
+    Construct a multi-layer variational autoencoder.
 
-     1 -> 
-     2 -> 
-     3 -> 
-    ...
-    10 -> 
+    Args:
+        latent_dim  (int)   : Number of latent dimensions of the autoencoder 
+        input_shape (int)   : Size of the input vector
+        beta        (float) : Disentanglement factor
+    
+    Returns:
+        autoencoder (model) : Keras model of complete autoencoder
+        encoder     (model) : Keras model of the encoder 
+        decoder     (model) : Keras model of the decoder
 
     """
-    
     # encoder structure (generates mean and log of stddev)
     inputs = layers.Input(shape=(input_shape,))
     x = layers.Dense(128, activation='relu')(inputs)
@@ -204,6 +219,8 @@ def build_multiple_layer_variational_autoencoder(latent_dim, input_shape, beta):
     return autoencoder, encoder, decoder
 
 def sample(args):
+    """ Perform sampling during training with reparameterization trick 
+    """
     mu, log_sigma = args
     batch = K.shape(mu)[0] 		# number of samples
     dim = K.int_shape(mu)[1] 	# latent dimension
@@ -212,14 +229,8 @@ def sample(args):
 
 def tune_single_layer_variational_autoencoder(x_train, y_train, x_val , y_val, params):
     """
-    Construct a simple single layer variational autoencoder.
-
-     1 -> 
-     2 -> 
-     3 -> 
-    ...
-    10 -> 
-
+    Construct a simple single layer variational autoencoder for hyperparameter tuning.
+    This is a modified function that allows a set of params to be passed during a tuning process.
     """
 
     latent_dim = 2

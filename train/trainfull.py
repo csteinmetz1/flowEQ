@@ -73,7 +73,7 @@ for latent_dim in latent_dims:
                     K.set_value(self.beta, new_beta)
                 print ("Current KL Weight is " + str(K.get_value(self.beta)))
 
-        # contstruct the model
+        # construct the model
         autoencoder, encoder, decoder = build_single_layer_variational_autoencoder(latent_dim, x_train.shape[1], beta)
 
         # train the model

@@ -6,7 +6,6 @@ from utils import *
 df_user  = pd.read_csv('../data/safe/SAFEEqualiserUserData.csv', header=None)
 #df_audio = pd.read_csv('../data/safe/SAFEEqualiserAudioFeatureData.csv', header=None)
 
-
 # and add in proper columns
 df_user.columns = ["entry", "descriptor", "ip_address", "?", "?",
                    "low_shelf_gain", "low_shelf_freq", 
