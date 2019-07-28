@@ -89,6 +89,17 @@ Running the plugin as MATLAB code is just as easy.
 
 If you are interested in training the models on your own, see the steps below.
 
+#### Notes for Windows
+
+The process for compiling the plugin on Windows is similar but requires a few more details.
+You will need the Visual Studio 2017 C++ compiler which you can get via [Visual Studio Community 2017](https://visualstudio.microsoft.com/vs/older-downloads/).
+Make sure to select the C++ build tools during the installation as well as the Windows SDK.
+
+In MATLAB you will need to configure the C++ compiler, which you can do by running the `mex -setup c++` command.
+If successful you should see a note that mentions MATLAB is configured to use the Visual Studio 2017 C++ compiler.
+Note that you CANNOT use the [mingw-w64 compiler](http://mingw-w64.org/doku.php) that MATLAB recommends for other use cases.
+
+
 ### Training
 
 There are a number of steps to train the models.
