@@ -158,6 +158,10 @@ classdef flowEQ < audioPlugin & matlab.System
         preEqLoudnessMeter;
         postEqLoudnessMeter; 
 
+        % bound gain value for safety (otherwise ouch...)
+        minGain = -12.0;
+        maxGain =  12.0;
+
         % Latent vector
         x = 0; y = 0; z = 0;
 
@@ -337,20 +341,20 @@ classdef flowEQ < audioPlugin & matlab.System
 
                     % bound gain value for safety (otherwise ouch...)
                     if     plugin.gainRange == GainRange.low
-                        minGain = -6.0;
-                        maxGain =  6.0;
+                        plugin.minGain = -6.0;
+                        plugin.maxGain =  6.0;
                     elseif plugin.gainRange == GainRange.medium
-                        minGain = -12.0;
-                        maxGain =  12.0;
+                        plugin.minGain = -12.0;
+                        plugin.maxGain =  12.0;
                     elseif   plugin.gainRange == GainRange.high
-                        minGain = -24.0;
-                        maxGain =  24.0;
+                        plugin.minGain = -24.0;
+                        plugin.maxGain =  24.0;
                     end
                     
-                    if gainComp > maxGain 
-                        gainComp = maxGain;
-                    elseif gainComp < minGain
-                        gainComp = minGain;
+                    if gainComp > plugin.maxGain 
+                        gainComp = plugin.maxGain;
+                    elseif gainComp < plugin.minGain
+                        gainComp = plugin.minGain;
                     end
                     
                     %gainComp
