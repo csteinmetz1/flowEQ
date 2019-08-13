@@ -1,8 +1,8 @@
 function LoadModel(h5path, matpath)
 % LOADMODEL Load a Keras model (autoencoder) and extract the decoder weights.
 %
-%   H5PATH  (required) - Path to Keras model weights file
-%   MATPATH (required) - Path to output mat file with weights
+%   h5path  (required) - Path to Keras model weights file
+%   matpath (required) - Path to output mat file with weights
 %
 %   This script loads the weights from the trained models and then
 %   converts them to MATLAB matracies, saving them to .mat files.

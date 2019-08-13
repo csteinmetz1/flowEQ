@@ -57,7 +57,7 @@ Read on if you are interested in running the plugin as MATLAB code, compiling it
 ### MATLAB
 
 To run the plugin as MATLAB code or compile the plugin for your platform you will need to have MATLAB 2019b along with the [Audio Toolbox](https://www.mathworks.com/products/audio.html).
-You can use an older version of MATLAB (not later than 2018a), but this will not include support for the customized GUI. 
+You can use an older version of MATLAB, but this will not include support for the customized GUI. 
 
 Start by cloning this repository.
 
@@ -71,20 +71,18 @@ Simply download the latest archive from [here](https://drive.google.com/drive/fo
 Extract this archive into a new directory `plugin/assets/`.
 
 To compile the plugin, simply open MATLAB and navigate to the `plugin/` directory. 
-Run the `build.m` function from the Command Window and the process will start.
+Run the `buildPlugin.m` function from the Command Window and the process will start.
+This will produce compiled plugins for flowEQ and flowEQ-lite in the same directory. 
 
+```MATLAB
+>> buildPlugin
 ```
->> build
-```
-
-The build process takes about 60 seconds on my 2018 MacBook Pro.
-This will produce a compiled plugin in the same directory. 
-An AudioUnit (`flowEQ.component`) if you are on MacOS or a VST plugin (`flowEQ.vst`) if you are on Windows. 
 
 Running the plugin as MATLAB code is just as easy. 
 
-```
->> run
+```MATLAB
+>> runPlugin            % for full plugin
+>> runPlugin('lite')    % for lite version 
 ```
 
 If you are interested in training the models on your own, see the steps below.
@@ -98,7 +96,6 @@ Make sure to select the C++ build tools during the installation as well as the W
 In MATLAB you will need to configure the C++ compiler, which you can do by running the `mex -setup c++` command.
 If successful you should see a note that mentions MATLAB is configured to use the Visual Studio 2017 C++ compiler.
 Note that you CANNOT use the [mingw-w64 compiler](http://mingw-w64.org/doku.php) that MATLAB recommends for other use cases.
-
 
 ### Training
 
