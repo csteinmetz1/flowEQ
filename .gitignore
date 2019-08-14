@@ -3,6 +3,7 @@
 
 # Datasets and models
 data/
+demo/
 models/
 train/logs/
 train/plots/

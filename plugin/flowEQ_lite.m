@@ -177,7 +177,7 @@ classdef flowEQ_lite < audioPlugin & matlab.System
                 plugin.loudnessFrames = plugin.loudnessFrames + 1;
 
                 % only update the gain compensation after set number of frames
-                if plugin.loudnessFrames > 4
+                if plugin.loudnessFrames > 2
                     plugin.loudnessFrames = 1;
 
                     % determine the difference between input and output loudness

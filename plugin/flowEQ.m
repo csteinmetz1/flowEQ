@@ -1,16 +1,16 @@
 classdef flowEQ < audioPlugin & matlab.System
     %----------------------------------------------------------------------
-    % public properties
+    % Public properties
     %----------------------------------------------------------------------
     properties(Nontunable)
-        net1d;  % one dimensional latent space model
-        net2d;  % two dimensional latent space model
-        net3d;  % three dimensional latent space model
+        net1d;  % 1D latent space model
+        net2d;  % 2D latent space model
+        net3d;  % 3D latent space model
         
-        % latent space embeddings for semantic descriptors
+        % Latent space embeddings for semantic descriptors
         codes = load('codes.mat', 'codes');
                         
-        udpvst = false; % set to this true if you want VST with UDP support
+        udpvst = false; % Set to this true if you want VST with UDP support
         udpsend;        % UDP sender object to be used
     end     
     
@@ -70,10 +70,11 @@ classdef flowEQ < audioPlugin & matlab.System
     end
     
     properties (Constant)
-        PluginInterface = GeneratePluginInterface('1.0.2');
+        % Generate plugin interface object based on MATLAB version
+        PluginInterface = GeneratePluginInterface('1.0.3');
         end
     %----------------------------------------------------------------------
-    % private properties
+    % Private properties
     %----------------------------------------------------------------------
     properties(Access = private)
         % Lowshelf filter coefs
@@ -119,14 +120,14 @@ classdef flowEQ < audioPlugin & matlab.System
 
     end
     %----------------------------------------------------------------------
-    % public methods
+    % Public methods
     %----------------------------------------------------------------------
     methods(Access = protected)
         function out = stepImpl(plugin,u)
             % -------------------- Parameter Updates ----------------------
             if plugin.updateAutoEqState && plugin.eqMode ~= OperatingMode.manual
                 
-                % determine latent code based on operating mode
+                % Determine latent code based on operating mode
                 if plugin.eqMode == OperatingMode.traverse
                     plugin.x = plugin.xDim;
                     plugin.y = plugin.yDim;
@@ -142,15 +143,15 @@ classdef flowEQ < audioPlugin & matlab.System
                     plugin.z = latentCode(3);
                 end
 
-                % extend the area of the latent space that is reachable
-                % this is only applicable in Traverse mode
+                % Extend the area of the latent space that is reachable
+                % (This is only applicable in Traverse mode)
                 if plugin.extend && plugin.eqMode == OperatingMode.traverse
                     plugin.x = plugin.x * 2;
                     plugin.y = plugin.y * 2;
                     plugin.z = plugin.z * 2;
                 end
 
-                % pass latent vector through decoder
+                % Pass latent vector through decoder
                 switch (plugin.latentDim)
                     case LatentDim.one
                         x_hat = plugin.net1d{plugin.disentanglement}.predict([plugin.x]);
@@ -160,10 +161,10 @@ classdef flowEQ < audioPlugin & matlab.System
                         x_hat = plugin.net3d{plugin.disentanglement}.predict([plugin.x plugin.y plugin.z]);
                 end 
                 
-                x_hat = plugin.net1d{1}.denormalize(x_hat); % denormalize 1x13 param vector
-                plugin.storeEqState(x_hat);                 % update autoEqState to match new params
-                plugin.fullFilterReset();                   % request coefficient update for all filters
-                setUpdateAutoEqState(plugin, false);        % turn the param update flag off (we are done)
+                x_hat = plugin.net1d{1}.denormalize(x_hat); % Denormalize 1x13 param vector
+                plugin.storeEqState(x_hat);                 % Update autoEqState to match new params
+                plugin.fullFilterReset();                   % Request coefficient update for all filters
+                setUpdateAutoEqState(plugin, false);        % Turn the param update flag off, we are done :)
             end
             if plugin.updateLowShelf
                 fs = getSampleRate(plugin);
@@ -252,10 +253,10 @@ classdef flowEQ < audioPlugin & matlab.System
             % Apply input gain
             u = 10.^(plugin.inputGain/20)*u;
 
-            % measure pre EQ short-term loudness
+            % Measure pre EQ short-term loudness
             [~,preEqShortTermLoudness,~,~] = plugin.preEqLoudnessMeter(u);
 
-            % Apply biquad filters one-by-one only if active
+            % Apply biquad filters one-by-one, only if active
             if plugin.lowShelfActive
                 [u, plugin.lowShelfState]   = filter(plugin.lowShelfb,   plugin.lowShelfa,   u, plugin.lowShelfState);
             end
@@ -272,26 +273,26 @@ classdef flowEQ < audioPlugin & matlab.System
                 [u, plugin.highShelfState]  = filter(plugin.highShelfb,  plugin.highShelfa,  u, plugin.highShelfState);
             end            
             
-            % measure post EQ short-term loudness
+            % Measure post-EQ short-term loudness
             [~,postEqShortTermLoudness,~,~] = plugin.postEqLoudnessMeter(u);
 
-            % determine loudness gain compensation
+            % Determine loudness gain compensation
             if plugin.gainCompensation
                 plugin.loudnessFrames = plugin.loudnessFrames + 1;
 
-                % only update the gain compensation after set number of frames
+                % Only update the gain compensation after set number of frames
                 if plugin.loudnessFrames > plugin.gainUpdateRate
                     plugin.loudnessFrames = 1;
 
-                    % determine the difference between input and output loudness
+                    % Determine the difference between input and output loudness
                     gainComp = mean(preEqShortTermLoudness, 'all') - mean(postEqShortTermLoudness, 'all');
 
-                    % if -Inf in loudness values set unity gain
+                    % If -Inf in loudness values set to unity gain
                     if any(isnan(gainComp))
                         gainComp = 0.0;
                     end
 
-                    % bound gain value for safety (otherwise ouch...)
+                    % Bound gain value for safety (otherwise, could be ouch...)
                     if     plugin.gainRange == GainRange.low
                         plugin.minGain = -6.0;
                         plugin.maxGain =  6.0;
@@ -309,7 +310,7 @@ classdef flowEQ < audioPlugin & matlab.System
                         gainComp = plugin.minGain;
                     end
                     
-                    % set the gain compensation value
+                    % Set the gain compensation value
                     plugin.loudnessGain = gainComp;
                 end
                 % Apply loudness compensation output gain
@@ -429,19 +430,19 @@ classdef flowEQ < audioPlugin & matlab.System
                                                            10.^(plugin.highShelfGain/20));
             end
             
-            % setup loudness compensation
+            % Setup loudness compensation
             plugin.loudnessGain         =   0.0;
             plugin.loudnessFrames       =     1;
             plugin.preEqLoudnessMeter   = loudnessMeter;
             plugin.postEqLoudnessMeter  = loudnessMeter;
 
-            % construct decoder objects ( try to do this programatically )
+            % Construct decoder objects (these are stored in 'assets' dir
             plugin.net1d = {Decoder('vae1d_beta_0.0000.mat'),Decoder('vae1d_beta_0.0010.mat'),Decoder('vae1d_beta_0.0100.mat'),Decoder('vae1d_beta_0.0200.mat')};
             plugin.net2d = {Decoder('vae2d_beta_0.0000.mat'),Decoder('vae2d_beta_0.0010.mat'),Decoder('vae2d_beta_0.0100.mat'),Decoder('vae2d_beta_0.0200.mat')};
             plugin.net3d = {Decoder('vae3d_beta_0.0000.mat'),Decoder('vae3d_beta_0.0010.mat'),Decoder('vae3d_beta_0.0100.mat'),Decoder('vae3d_beta_0.0200.mat')};
             
             if coder.target('MATLAB') || plugin.udpvst
-                % setup UDP sender for comm with DAW
+                % Setup UDP sender for comm with DAW
                 plugin.udpsend = dsp.UDPSender('RemoteIPPort', 20000);
             end
         end
@@ -454,7 +455,7 @@ classdef flowEQ < audioPlugin & matlab.System
         end
     end    
     %----------------------------------------------------------------------
-    % private methods
+    % Private methods
     %----------------------------------------------------------------------
     methods (Access = private)
         function storeEqState(plugin, x_hat)
@@ -507,7 +508,7 @@ classdef flowEQ < audioPlugin & matlab.System
         % https://www.w3.org/2011/audio/audio-eq-cookbook.html
         %------------------------------------------------------------------
         function [b, a] = makeLowShelf(~, fs, cutOffFrequency, Q, gainFactor)
-            % initial values
+            % Initial values
             A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
             aplus1 = A + 1;
@@ -516,7 +517,7 @@ classdef flowEQ < audioPlugin & matlab.System
             beta_ = sin(omega) * sqrt(A) / Q; 
             aminus1TimesCoso = aminus1 * coso;
 
-            % coefs calculation
+            % Coefs calculation
             b0 = A * (aplus1 - aminus1TimesCoso + beta_);
             b1 = A * 2 * (aminus1 - aplus1 * coso);
             b2 = A * (aplus1 - aminus1TimesCoso - beta_);
@@ -524,12 +525,12 @@ classdef flowEQ < audioPlugin & matlab.System
             a1 = -2 * (aminus1 + aplus1 * coso);
             a2 = aplus1 + aminus1TimesCoso - beta_;
 
-            % output coefs (not sure to normalize by a0 or not?)
+            % Output coefs (not sure to normalize by a0 or not?)
             b = [b0, b1, b2];
             a = [a0, a1, a2];
         end
         function [b, a] = makeHighShelf(~, fs, cutOffFrequency, Q, gainFactor)
-            % initial values
+            % Initial values
             A = max(0.0, sqrt(gainFactor));
             aminus1 = A - 1;
             aplus1 = A + 1;
@@ -538,7 +539,7 @@ classdef flowEQ < audioPlugin & matlab.System
             beta_ = sin(omega) * sqrt(A) / Q; 
             aminus1TimesCoso = aminus1 * coso;
 
-            % coefs calculation
+            % Coefs calculation
             b0 = A * (aplus1 + aminus1TimesCoso + beta_);
             b1 = A * -2 * (aminus1 + aplus1 * coso);
             b2 = A * (aplus1 + aminus1TimesCoso - beta_);
@@ -546,12 +547,12 @@ classdef flowEQ < audioPlugin & matlab.System
             a1 = 2 * (aminus1 - aplus1 * coso);
             a2 = aplus1 - aminus1TimesCoso - beta_;
 
-            % output coefs
+            % Output coefs
             b = [b0, b1, b2];
             a = [a0, a1, a2];
         end
         function [b, a] = makePeakFilter(~, fs, frequency, Q, gainFactor)
-            % initial values
+            % Initial values
             A = max(0.0, sqrt(gainFactor));
             omega = (2 * pi * max(frequency, 2.0)) / fs;
             alpha_ = sin(omega) / (Q * 2);
@@ -559,7 +560,7 @@ classdef flowEQ < audioPlugin & matlab.System
             alphaTimesA = alpha_ * A;
             alphaOverA = alpha_ / A;
 
-            % coefs calculation
+            % Coefs calculation
             b0 = 1 + alphaTimesA;
             b1 = c2;
             b2 = 1 - alphaTimesA;
@@ -567,13 +568,13 @@ classdef flowEQ < audioPlugin & matlab.System
             a1 = c2;
             a2 = 1 - alphaOverA;
 
-            % output coefs
+            % Output coefs
             b = [b0, b1, b2];
             a = [a0, a1, a2];
         end
     end
     %----------------------------------------------------------------------
-    % setter and getter methods
+    % Setter and Getter methods
     %----------------------------------------------------------------------
     methods 
         %---------------------------- Decoder -----------------------------
