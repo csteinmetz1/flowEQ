@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Presentation title</title>
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/minimal.css">
+
+		<!-- LaTeX support - Woo! -->
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<div class="top-logo">
+						<img src="img/upf_red.svg" style="width: 20%;">
+					</div>
+					<div class="title">
+						<h1 style="margin: 0px 0 0 0;">flowEQ</h1>
+						<h4 style="margin: 0 0 0 0;">A new way to navigate equalization</h4>
+						<h6 style="margin: 5px 0 0 0;">October 19th, 2019 - 147th AES Convention - New York, New York, USA</h6>
+						<h3 style="margin: 25px 0 0 0;">Christian Steinmetz</h3>
+						<h5 style="margin: 0px 0 0 0;">Music Technology Group at Universitat Pompeu Fabra</h5>
+					</div>
+				</section>
+				<section>
+					<h1> White section section slide</h1>
+				</section>
+				<section data-background="#c8102f">
+					<h1 class="white"> Red section section slide</h1>
+				</section>
+				<section data-background="#c8102f">
+					<div class="end">
+						<img src="img/upf_wh.svg" style="width: 35%;">
+						<h3 class="white" style="margin: 25px 0 0 0;"> Description of the first webpage or link</h3>
+						<h5> <a class="white" href="https://">https://</a></h5>   
+						<h3 class="white" style="margin: 25px 0 0 0;"> Description of the second webpage or link</h3>
+						<h5> <a class="white" href="http://">http://</a></h5>   
+						<h4 class="white"> <img src="img/twitter_wh.png" alt="twitter" style="margin: 50px 10px 0 0; width: 30px"> <a href="https://twitter.com/csteinmetz1">@csteinmetz1</a></h4> 
+						<h4 class="white"> <img src="img/mail_wh.png" alt="mail" style="margin: 5px 10px 0 0; width: 30px"> <a href="mailto:christian.steinmetz@upf.edu">christian.steinmetz@upf.edu</a></h4>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true }
+				]
+			});
+		</script>
+	</body>
+</html>
