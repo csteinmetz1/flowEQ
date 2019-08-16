@@ -69,11 +69,6 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
 
         <p>Skip to the <a href="#controls">Controls</a> section to learn about how to use the plugin, or read on to learn more about how it all works.</p>
 
-        <figure class="figure">
-            <img src="img/full_plugin.png" class="img-fluid" alt="Full plugin">
-            <figcaption class="figure-caption"><strong>flowEQ</strong> plugin running with the custom GUI in REAPER</figcaption>
-        </figure>
-
         <div class="row">
             <div class="col-sm-2">
                 <a class="btn btn-dark" href="https://github.com/csteinmetz1/flowEQ" role="button">GitHub</a>
@@ -85,6 +80,10 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
                 </p>
             </div>
         </div>
+
+        <h3 id="promo">Promotional video</h3>
+
+        <iframe width="900" height="506" src="https://www.youtube.com/embed/9fohvzb0l28" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
         <h3 id="floweq-lite">flowEQ-lite</h3>
 
@@ -131,6 +130,12 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
         </p>
 
         <h2 id="plugin">Plugin</h2>
+
+        <figure class="figure">
+            <img src="img/full_plugin.png" class="img-fluid" alt="Full plugin">
+            <figcaption class="figure-caption"><strong>flowEQ</strong> plugin running with the custom GUI in REAPER</figcaption>
+        </figure>
+
         <p>
             The plugin is built using the <a href="https://www.mathworks.com/products/audio.html">MATLAB Audio Toolbox</a> and Python. 
             The autoencoder models are first trained using <a href="https://keras.io/">Keras</a> (<a href="https://www.tensorflow.org/beta/">tf.keras in TensorFlow 2.0 beta</a>). 
@@ -191,7 +196,6 @@ VST3: Macintosh HD/Library/Audio/Plug-Ins/VST3
             Each of the five bands features an Active checkbox. 
             Un-checking one of these will deactivate the respective band. 
             This is applicable both in Manual mode as well as Traverse and Semantic, although it may prove less useful in the later two.
-    
         </p>
 
         <div class="img-center">
