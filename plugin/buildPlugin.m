@@ -28,7 +28,13 @@ function buildPlugin
 
 % check if the models and codes have been generated
 if ~exist('assets', 'dir')
-    error('assets directory not found. Refer the to the README for help.')
+    fprintf('assets directory was not found. Downloading assets...\n');
+    assetsurl = 'https://docs.google.com/uc?export=download&id=1bwp0B2xMQl7u3sKalO5AmNkVLN9Zxi0g';
+    archive = 'assets.zip';
+    outfile = websave(archive,assetsurl);       % download assets if folder not found
+    unzip(outfile);                             % extract files from archive
+    delete(outfile);                            % remove archive
+    fprintf('Download complete.\n');
 end
     
 % add important directories to path
