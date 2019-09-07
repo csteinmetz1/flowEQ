@@ -17,7 +17,9 @@ FlowEqAudioProcessorEditor::FlowEqAudioProcessorEditor (FlowEqAudioProcessor& p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (800, 400);
+	
+	addAndMakeVisible(eqKnobsSection);
 }
 
 FlowEqAudioProcessorEditor::~FlowEqAudioProcessorEditor()
@@ -29,14 +31,13 @@ void FlowEqAudioProcessorEditor::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
-
-    g.setColour (Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), Justification::centred, 1);
 }
 
 void FlowEqAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+
+	//eqKnobsSection.setBounds(0, getHeight() / 2, getWidth(), getHeight() / 2);
+	eqKnobsSection.setBounds(getLocalBounds());
 }
