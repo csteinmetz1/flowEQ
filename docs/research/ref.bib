@@ -2,6 +2,15 @@
 % Equalization and Semantic Audio
 % ---------------------------------------------------------------------------
 
+@conference{massenburg,
+     title = {Parametric Equalization},
+    author = {Massenburg, George},
+ booktitle = {Audio Engineering Society Convention 42},
+     month = {May},
+      year = {1972},
+       url = {http://www.aes.org/e-lib/browse.cfm?elib=16171}
+}
+
 % Intro of SAFE plugins
 @inproceedings{safe2014,
      title = {{SAFE}: A system for the extraction and retrieval of semantic audio descriptors},
@@ -14,8 +23,8 @@
 % SAFE Plugins
 % Analysis of the words used across all plugins and how they are related to each other
 @inproceedings{stables_semantic,
-         author = {Stables, Ryan and De Man, Brecht and Enderby, Sean and Reiss, Joshua D. and Fazekas, Gy\"{o}rgy and Wilmering, Thomas},
-          title  = {Semantic Description of Timbral Transformations in Music Production},
+    author = {Stables, Ryan and De Man, Brecht and Enderby, Sean and Reiss, Joshua D. and Fazekas, György and Wilmering, Thomas},
+    title  = {Semantic Description of Timbral Transformations in Music Production},
  booktitle = {Proceedings of the 24th ACM International Conference on Multimedia},
     series = {MM '16},
       year = {2016},
@@ -60,10 +69,27 @@
 % Variational Autoencoders
 % ----------------------------------------------------------------------------
 
+% Foundational VAE paper
+@article{vae,
+       author = {{Kingma}, Diederik P and {Welling}, Max},
+        title = "{Auto-Encoding Variational Bayes}",
+      journal = {arXiv e-prints},
+     keywords = {Statistics - Machine Learning, Computer Science - Machine Learning},
+         year = "2013",
+        month = "Dec",
+          eid = {arXiv:1312.6114},
+        pages = {arXiv:1312.6114},
+archivePrefix = {arXiv},
+       eprint = {1312.6114},
+ primaryClass = {stat.ML},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2013arXiv1312.6114K},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
 % More insights into β-VAE and training
 % Trick to change the β value over training
 @article{burgess_betavae,
-    title = {Understanding disentangling in β-VAE},
+    title = {Understanding disentangling in $\beta$-{VAE}},
    author = {Burgess, Christopher P and Higgins, Irina and Pal, Arka and Matthey, Loic and Watters, Nick and Desjardins, Guillaume and Lerchner, Alexander},
   journal = {arXiv preprint arXiv:1804.03599},
      year = {2018},
@@ -73,7 +99,7 @@
 % Introduction of β-VAE concept
 % Lots applications and visual examples
 @article{higgins_betavae,
-    title = {β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.},
+    title = {$\beta$-{VAE}: Learning Basic Visual Concepts with a Constrained Variational Framework.},
    author = {Higgins, Irina and Matthey, Loic and Pal, Arka and Burgess, Christopher and Glorot, Xavier and Botvinick, Matthew and Mohamed, Shakir and Lerchner, Alexander},
   journal = {ICLR},
    volume = {2},
