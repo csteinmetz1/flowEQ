@@ -13,13 +13,13 @@
 
 //==============================================================================
 FlowEqAudioProcessorEditor::FlowEqAudioProcessorEditor (FlowEqAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p)
+    : AudioProcessorEditor (&p), processor (p), lowpass(-12.0, 12.0, 22, 1000, 0.1, 10.0)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (800, 400);
 	
-	addAndMakeVisible(eqKnobsSection);
+	addAndMakeVisible(lowpass);
 }
 
 FlowEqAudioProcessorEditor::~FlowEqAudioProcessorEditor()
@@ -39,5 +39,5 @@ void FlowEqAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
 	//eqKnobsSection.setBounds(0, getHeight() / 2, getWidth(), getHeight() / 2);
-	eqKnobsSection.setBounds(getLocalBounds());
+	lowpass.setBounds(getLocalBounds());
 }

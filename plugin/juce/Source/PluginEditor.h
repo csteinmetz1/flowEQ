@@ -12,7 +12,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
-#include "EQKnobsSection.h"
+#include "EQBandKnobsSection.h"
 
 #include <vector>
 
@@ -35,7 +35,7 @@ private:
     FlowEqAudioProcessor& processor;
 
 	// UI sections
-	EQKnobsSection eqKnobsSection;
+	EQBandKnobsSection lowpass;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FlowEqAudioProcessorEditor)
 };

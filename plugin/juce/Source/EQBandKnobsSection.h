@@ -15,11 +15,13 @@
 
 #include <vector>
 
-class EQKnobsSection : public Component
+class EQBandKnobsSection : public Component
 {
 public:
-	EQKnobsSection();
+    EQBandKnobsSection(float, float, float, float, float, float);
 	void resized() override;
 private:
-	OwnedArray<Slider> eqKnobs;
+    Slider cutoffKnob;
+    Slider gainKnob;
+    Slider bandwidthKnob;
 };

@@ -5,10 +5,10 @@
     <GROUP id="{69D500E0-E8B2-D678-1C2A-5A6BE97247C2}" name="Source">
       <FILE id="AFgQML" name="UISection.cpp" compile="1" resource="0" file="Source/UISection.cpp"/>
       <FILE id="Ej2fVj" name="UISection.h" compile="0" resource="0" file="Source/UISection.h"/>
-      <FILE id="SztxBV" name="EQKnobsSection.cpp" compile="1" resource="0"
-            file="Source/EQKnobsSection.cpp"/>
-      <FILE id="poyTjE" name="EQKnobsSection.h" compile="0" resource="0"
-            file="Source/EQKnobsSection.h"/>
+      <FILE id="SztxBV" name="EQBandKnobsSection.cpp" compile="1" resource="0"
+            file="Source/EQBandKnobsSection.cpp"/>
+      <FILE id="poyTjE" name="EQBandKnobsSection.h" compile="0" resource="0"
+            file="Source/EQBandKnobsSection.h"/>
       <FILE id="BTmZGx" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="vCQpsr" name="PluginProcessor.h" compile="0" resource="0"
