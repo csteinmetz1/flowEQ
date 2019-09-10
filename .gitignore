@@ -7,8 +7,7 @@ demo/
 models/
 train/logs/
 train/plots/
-*.pdf
-
+research/papers/*.pdf
 # Python
 __pycache__
 env/
