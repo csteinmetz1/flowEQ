@@ -112,6 +112,10 @@ text-shadow: none; }
   color: #fff !important;
 }
 
+.title-text {
+  font-weight: 400 !important;
+}
+
 .top-logo {
   position:fixed;
   top:-150px !important;
