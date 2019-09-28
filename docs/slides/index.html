@@ -24,11 +24,14 @@
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
 		<style>
-			.container{
+			.container {
 				display: flex;
 			}
-			.col{
+			.col {
 				flex: 1;
+			}
+			.MJXc-display {
+				font-size: 1.3em !important;
 			}
 		</style>
 	</head>
@@ -149,24 +152,84 @@
 								<img class="fragment fade-in" src="../img/eq_curve.png" style="max-height: 80%; max-width: 80%;">		
 							</div>
 						</div>		
-					</section> 
+					</section>
+					<section>
+						<h2>Variational autoencoder</h2>
+						<div class="fragment fade-in">
+							<img src="../img/gauss.gif" style="max-height: 30%; max-width: 30%;">
+							<p>The encoder becomes probabilistic and generates μ and σ</p>
+						</div>
+
+						<ul style="margin-top: 40px;">
+							<li class="fragment fade-in"><p>centers latent codes around origin</p></li>
+							<li class="fragment fade-in"><p>similar samples placed together</p></li>
+							<li class="fragment fade-in"><p>dense population of latent space</p></li>
+						</ul>		
+
+						<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
+						<h6> Diederik P. Kingma and Max Welling</h6>  
+
+					</section>
+					<section>
+						<h2>Disentanglement</h2>
+
+						<h4> Loss function</h4>
+						$$ \Large \mathcal{L}_{\beta-VAE}(\pmb{\theta},\pmb{\phi},\mathbf{x}^{(i)}) = - \mathbb{E}_{\mathbf{z} \sim q_{\theta}(\mathbf{z}|\mathbf{x}^{(i)})} [ {\log{p_\phi(\mathbf{x}^{(i)} | \mathbf{z})}} ] + \mathbf{\beta} \: D_{KL} (q_\theta(\mathbf{z} | \mathbf{x}^{(i)}) || p_\theta(\mathbf{z})) $$
+
+						<ul>
+							<li class="fragment fade-in"><p>The beta term weighs the KL loss against the reconstruction loss</p></li>
+							<li class="fragment fade-in"><p>Larger beta means greater disentanglement</p></li>
+						</ul>
+
+
+						<h5 style="margin: 80px 0 5px 0px;"><strong>β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework</strong></h5>
+						<h6> Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner</h6> 
+
+					</section>
+
 				</section>
+
 				<section>
 					<section data-background="#c8102f">
 						<h1 class="white"> Implementation </h1>
 					</section>
 					<section>
-						<img src="../img/dataset_tf.gif" style="max-height: 70%; max-width: 80%;">
+						<img src="../img/dataset_tf.gif" style="max-height: 70%; max-width: 70%;">
 						<h3>SAFE-DB Dataset for five-band parametric EQ</h3>	
 						<h4>1700 examples</h4>					
 					</section>
 					<section>
 						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
 					</section>
+					<section>
+						<h3>Latent space disentanglement</h3>
+						<div class="container">
+							<div class="col" style="max-height: 50%; max-width: 50%;">
+								<img src="../img/2d_beta_0.000_200epochs_2.gif">
+								<p>β = 0.0</p>
+							</div>
+							<div class="col" style="max-height: 50%; max-width: 50%;">
+								<img src="../img/2d_beta_0.020_200epochs_2.gif">
+								<p>β = 0.02</p>
+							</div>
+						</div>
+					</section>
 				</section>
-				<section data-background="#c8102f">
-					<h1 class="white"> Future directions </h1>
+
+				<section>
+					<section data-background="#c8102f">
+						<h1 class="white"> Future directions </h1>
+					</section>
+					<section>
+						<ul>
+							<li class="fragment fade-in"><h3>Adaptive latent space conditioned on streaming audio content</h3></li>
+							<li class="fragment fade-in"><h3>Collect additional data to expand the model's knowledge</h3></li>	
+							<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
+						</ul>
+					</section>
+		
 				</section>
+
 
 				<section data-background="#c8102f">
 					<div class="end">
@@ -181,7 +244,7 @@
 						
 						<div style="margin: 40px 0 0 0; float: left;">
 							<h4> <img src="img/twitter_wh.png" alt="twitter" style="margin: 10px 10px 0 0; width: 30px"> <a class="white" href="https://twitter.com/csteinmetz1">@csteinmetz1</a></h4> 
-							<h4> <img src="img/mail_wh.png" alt="mail" style="margin: 5px 10px 0 0; width: 30px"> <a class="white" href="mailto:christian.steinmetz@upf.edu">christian.steinmetz@upf.edu</a></h4>
+							<h4> <img src="img/mail_wh.png" alt="mail" style="margin: 5px 10px 0 0; width: 30px"> <a class="white" href="mailto:christianjames.steinmetz01@estudiant.upf.edu">christianjames.steinmetz01@estudiant.upf.edu</a></h4>
 						</div>
 
 						<img src="img/flowEQ_QR_code.png" alt="QR Code" style="margin: 20px 10px 0 0; width: 150px; float: right;">	
