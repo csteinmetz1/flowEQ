@@ -42,7 +42,7 @@
 				<!-- Title slide --->
 				<section>
 					<div class="top-logo">
-						<img src="img/upf_red.svg" style="width: 20%;">
+						<img src="img/upf_red.svg" style="width: 30%;">
 					</div>
 					<div class="title">
 						<h1 style="margin: 0px 0 0 0;" class="title-text">flowEQ</h1>
@@ -57,10 +57,11 @@
 				<section>
 					<div style="text-align: center;">
 						<img src="img/headshot_bw_sm.jpg" style="width: 300px;">
-						<h3><strong> Christian Steinmetz </strong></h3>
-						<h5> <a href="https://twitter.com/csteinmetz1">@csteinmetz1</a></h5>
-						<h5> <a href="https://christiansteinmetz.com">www.christiansteinmetz.com</a></h5>
-						<h5> <a href="mailto:christian.steinmetz@upf.edu">christianjames.steinmetz01@estudiant.upf.edu</a></h5>
+						<h3 style="margin: 0px 0 0 0;" ><strong> Christian Steinmetz </strong></h3>
+						<h5>MSc Student in the MTG at UPF</h5>
+						<h5 style="margin: 0px 0 0 0;"> <a href="mailto:christian.steinmetz@upf.edu">christianjames.steinmetz01@estudiant.upf.edu</a></h5>
+						<h5 style="margin: 0px 0 0 0;"> <a href="https://christiansteinmetz.com">www.christiansteinmetz.com</a></h5>						
+						<h5 style="margin: 0px 0 0 0;"> <a href="https://twitter.com/csteinmetz1">@csteinmetz1</a></h5>
 					</div>
 				</section>
 
@@ -251,6 +252,7 @@
 						<ul>
 							<li><p>Twelve different models with different latent sizes and values of β</p></li>
 							<li><p>We use <strong>Keras</strong> and save the model weights for each model as HDF5</p></li>
+							<li><p>Adam optimizer with learning rate of 0.001</p></li>
 							<li><p>Each model is trained for 200 epochs</p></li>
 							<li><p>Entire training process takes about 2 hours on CPU</p></li>
 						</ul>
@@ -306,20 +308,8 @@
 								</tr>
 							</tbody>
 						</table>
-
-
 					</section>
-				</section>
 
-				<!-- MATLAB Plugin details --->
-				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Plugin </h1>
-					</section>
-					<section>
-						<h2>MATLAB Plugin</h2>
-						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
-					</section>
 					<section>
 						<h3>Latent space disentanglement</h3>
 						<div class="container">
@@ -332,7 +322,47 @@
 								<p>β = 0.02</p>
 							</div>
 						</div>
+						<div>
+							<h3 style="margin: 0 0 0 0; color: #444e86;"><strong>Bright</strong></h3>
+							<h3 style="margin: 0 0 0 0; color: #ff6e54;"><strong>Warm</strong></h3>
+						</div>
 					</section>
+				</section>
+
+				<!-- MATLAB Plugin details --->
+				<section>
+					<section data-background="#c8102f">
+						<h1 class="white"> Plugin </h1>
+					</section>
+					<section data-transition="slide-in fade-out">
+						<h2>Full plugin interface</h2>
+						<img src="../img/full_visual.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section  data-transition="fade-in fade-out">
+						<h2>Latent space traversal</h2>
+						<img src="../img/traverse_focus.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section  data-transition="fade-in fade-out">
+						<h2>Semantic controls</h2>
+						<img src="../img/semantic_focus.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section  data-transition="fade-in fade-out">
+						<h2>Fully manual controls</h2>
+						<img src="../img/manual_focus.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section  data-transition="fade-in fade-out">
+						<h2>Model control</h2>
+						<img src="../img/control_focus.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section  data-transition="fade-in fade-out">
+						<h2>Automatic gain compensation</h2>
+						<img src="../img/gain_focus.png" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					<section>
+						<h2>MATLAB Plugin</h2>
+						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
+					</section>
+					
 				</section>
 
 				<!-- Future directions --->
@@ -345,6 +375,8 @@
 							<li class="fragment fade-in"><h3>Adaptive latent space conditioned on streaming audio content</h3></li>
 							<li class="fragment fade-in"><h3>Collect additional data to expand the model's knowledge</h3></li>	
 							<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
+							<li class="fragment fade-in"><h3>Extend this to an entire mixing console (...but we need the data...)</h3></li>	
+
 						</ul>
 					</section>
 				</section>
