@@ -64,7 +64,6 @@ text-align: left !important;
 /*********************************************
  * HEADERS
  *********************************************/
-.reveal li,
 .reveal h1,
 .reveal h2,
 .reveal h3,
@@ -166,6 +165,18 @@ text-shadow: none; }
   display: inline-block;
   text-align: left;
   margin: 0 0 0 1em; }
+
+.reveal li {
+  margin: 0;
+  color: #3C3D42;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word; 
+}
 
 .reveal ol {
   list-style-type: decimal; }

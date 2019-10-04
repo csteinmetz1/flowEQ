@@ -194,7 +194,43 @@
 						<h1 class="white"> Implementation </h1>
 					</section>
 					<section>
-						<img src="../img/dataset_tf.gif" style="max-height: 70%; max-width: 70%;">
+						<h2>Model architecture</h2>	
+						<div style="margin: 20px 0px 0 80px; float:left;">
+							<img src="../img/net.svg" style="max-height: 100%; max-width: 100%;">
+							<p>VAE architecture</p>
+						</div> 
+
+						<div style="margin: 20px 0 0 0; float:right;">
+							<h4>Purposefully simple design</h4>
+							<ul>
+								<li><p>Fast inference time for seamless real-time use</p></li>
+								<li><p>Straightforward matrix operations in MATLAB code</p></li>
+								<li><p>Low data dimensionality doesn't require large network</p></li>
+							</ul>
+						</div>
+					</section>
+					<section>
+						<h2>Size</h2>
+						<table>
+							<tr>
+								<td style="border-bottom: none; vertical-align:middle;"><h4><strong>Latent</strong></h4></td>
+								<td style="border-bottom: none;"><h4>1</h4></td>
+								<td style="border-bottom: none;"><h4>2</h4></td>
+								<td style="border-bottom: none;"><h4>3</h4></td>
+							</tr>
+							<tr>
+								<td style="border-bottom: none; vertical-align:middle;"><h4><strong>Parameters</strong></h4></td>
+								<td style="border-bottom: none;"><h4>31,759</h4></td>
+								<td style="border-bottom: none;"><h4>34,833</h4></td>
+								<td style="border-bottom: none;"><h4>37,707</h4></td>
+							</tr>
+						</table>
+
+						<p>Forward pass through decoder is about <strong>300 μs</strong> seconds on CPU</p>
+
+					</section>
+					<section>
+						<img src="../img/dataset_tf.gif" style="max-height: 60%; max-width: 60%;">
 						<h3>SAFE-DB Dataset for five-band parametric EQ</h3>	
 						<h4>1700 examples</h4>					
 					</section>
