@@ -178,7 +178,7 @@
 						</ul>		
 
 						<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
-						<h6> Diederik P. Kingma and Max Welling</h6>  
+						<h6> Diederik P. Kingma and Max Welling, 2013.</h6>  
 
 					</section>
 					<section>
@@ -194,7 +194,7 @@
 
 
 						<h5 style="margin: 80px 0 5px 0px;"><strong>β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework</strong></h5>
-						<h6> Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner</h6> 
+						<h6>Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner, 2017.</h6> 
 
 					</section>
 				</section>
@@ -243,8 +243,11 @@
 					<section>
 						<h2>Dataset</h2>
 						<img src="../img/dataset_tf.gif" style="max-height: 50%; max-width: 50%;">
-						<h4><strong>SAFE-DB dataset</strong> for five-band parametric EQ</h3>	
-						<h5>~1700 examples</h4>					
+						<h4>SAFE-DB dataset for five-band parametric EQ</h3>	
+						<h5>~1700 examples</h4>			
+							
+						<h5 style="margin: 60px 0 5px 0px;"><strong>SAFE: A system for the extraction and retrieval of semantic audio descriptors</strong></h5>
+						<h6>Ryan Stables, Sean Enderby. Brecht De Man, Gyorgy Fazekas, and Joshua Reiss, 2014.</h6> 
 					</section>
 					<section>
 						<h2>Training</h2>
@@ -334,6 +337,24 @@
 					<section data-background="#c8102f">
 						<h1 class="white"> Plugin </h1>
 					</section>
+					<section>
+						<h2>Overview</h2>
+						<ul>
+							<li class="fragment fade-in">We use the MATLAB Audio Toolbox to deploy the plugin</li>
+							<li class="fragment fade-in">3 main modes of operation: Traverse, Semantic, and Manual</li>
+							<li class="fragment fade-in">User can select among 12 models (varying Latent and β)</li>
+						</ul>
+					</section>
+					<section>
+						<h2>Machine learning models in Audio Toolbox</h2>
+						<ol>
+							<li class="fragment fade-in">Save model weights from training in Keras as HDF5 files</li>
+							<li class="fragment fade-in">We use a custom MATLAB function to convert these to MAT files</li>
+							<li class="fragment fade-in">Implement the model architecture in pure MATLAB code</li>
+							<li class="fragment fade-in">UI controls swap the weights of the network used for inference</li>
+							<li class="fragment fade-in">Connect output (EQ parameters) to 5-band parametric EQ implemented in MATLAB</li>
+						</ol>
+					</section>
 					<section data-transition="slide-in fade-out">
 						<h2>Full plugin interface</h2>
 						<img src="../img/full_visual.png" style="max-height: 70%; max-width: 80%;">						
@@ -359,10 +380,15 @@
 						<img src="../img/gain_focus.png" style="max-height: 70%; max-width: 80%;">						
 					</section>
 					<section>
-						<h2>MATLAB Plugin</h2>
+						<h2>flowEQ-lite</h2>
+						<p>Features an extremely simple interface</p>
+						<img src="../img/lite_plugin.png" style="max-height: 70%; max-width: 70%;">						
+					</section>
+					<section>
+						<h2>Anatomy of the plugin</h2>
 						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
 					</section>
-					
+				
 				</section>
 
 				<!-- Future directions --->
@@ -376,7 +402,6 @@
 							<li class="fragment fade-in"><h3>Collect additional data to expand the model's knowledge</h3></li>	
 							<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
 							<li class="fragment fade-in"><h3>Extend this to an entire mixing console (...but we need the data...)</h3></li>	
-
 						</ul>
 					</section>
 				</section>
