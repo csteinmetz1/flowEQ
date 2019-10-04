@@ -253,6 +253,7 @@ text-shadow: none; }
 
 .reveal table th,
 .reveal table td {
+  font-size: 18px;
   text-align: left;
   padding: 0.2em 0.5em 0.2em 0.5em;
   border-bottom: 1px solid; }
@@ -268,6 +269,11 @@ text-shadow: none; }
 .reveal table tbody tr:last-child th,
 .reveal table tbody tr:last-child td {
   border-bottom: none; }
+
+.reveal .large-table th,
+.reveal .large-table td {
+  font-size: 24px;
+}
 
 .reveal sup {
   vertical-align: super;

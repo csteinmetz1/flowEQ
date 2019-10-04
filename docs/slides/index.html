@@ -38,6 +38,8 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
+
+				<!-- Title slide --->
 				<section>
 					<div class="top-logo">
 						<img src="img/upf_red.svg" style="width: 20%;">
@@ -50,6 +52,8 @@
 						<h5 style="margin: 0px 0 0 0;">Music Technology Group, Universitat Pompeu Fabra, Barcelona, Spain</h5>
 					</div>
 				</section>
+
+				<!-- Personal intro slide --->
 				<section>
 					<div style="text-align: center;">
 						<img src="img/headshot_bw_sm.jpg" style="width: 300px;">
@@ -59,6 +63,8 @@
 						<h5> <a href="mailto:christian.steinmetz@upf.edu">christianjames.steinmetz01@estudiant.upf.edu</a></h5>
 					</div>
 				</section>
+
+				<!-- What is flowEQ? --->
 				<section>					
 					<section data-background="#c8102f">
 						<h1 class="white"> What is <strong>flowEQ</strong>? </h1>
@@ -68,6 +74,8 @@
 						<h3>Using machine learning for simplified control of parametric EQ</h3>
 					</section>
 				</section>
+
+				<!-- Background on equalization --->
 				<section>
 					<section data-background="#c8102f">
 						<h1 class="white"> Equalization </h1>
@@ -123,6 +131,8 @@
 						<img src="../img/pianoEQ.png" style="max-height: 40%; max-width: 40%;">
 					</section>
 				</section>
+
+				<!-- VAE Theory --->
 				<section>
 					<section data-background="#c8102f">
 						<h1 class="white"> Theory </h1>
@@ -186,12 +196,12 @@
 						<h6> Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner</h6> 
 
 					</section>
-
 				</section>
 
+				<!-- Model and training details --->
 				<section>
 					<section data-background="#c8102f">
-						<h1 class="white"> Implementation </h1>
+						<h1 class="white"> Model </h1>
 					</section>
 					<section>
 						<h2>Model architecture</h2>	
@@ -211,18 +221,18 @@
 					</section>
 					<section>
 						<h2>Size</h2>
-						<table>
+						<table class="large-table">
 							<tr>
-								<td style="border-bottom: none; vertical-align:middle;"><h4><strong>Latent</strong></h4></td>
-								<td style="border-bottom: none;"><h4>1</h4></td>
-								<td style="border-bottom: none;"><h4>2</h4></td>
-								<td style="border-bottom: none;"><h4>3</h4></td>
+								<th>Latent</th>
+								<td>1</td>
+								<td>2</td>
+								<td>3</td>
 							</tr>
 							<tr>
-								<td style="border-bottom: none; vertical-align:middle;"><h4><strong>Parameters</strong></h4></td>
-								<td style="border-bottom: none;"><h4>31,759</h4></td>
-								<td style="border-bottom: none;"><h4>34,833</h4></td>
-								<td style="border-bottom: none;"><h4>37,707</h4></td>
+								<th>Parameters</th>
+								<td>31,759</td>
+								<td>34,833</td>
+								<td>37,707</td>
 							</tr>
 						</table>
 
@@ -230,11 +240,84 @@
 
 					</section>
 					<section>
-						<img src="../img/dataset_tf.gif" style="max-height: 60%; max-width: 60%;">
-						<h3>SAFE-DB Dataset for five-band parametric EQ</h3>	
-						<h4>1700 examples</h4>					
+						<h2>Dataset</h2>
+						<img src="../img/dataset_tf.gif" style="max-height: 50%; max-width: 50%;">
+						<h4><strong>SAFE-DB dataset</strong> for five-band parametric EQ</h3>	
+						<h5>~1700 examples</h4>					
 					</section>
 					<section>
+						<h2>Training</h2>
+
+						<ul>
+							<li><p>Twelve different models with different latent sizes and values of β</p></li>
+							<li><p>We use <strong>Keras</strong> and save the model weights for each model as HDF5</p></li>
+							<li><p>Each model is trained for 200 epochs</p></li>
+							<li><p>Entire training process takes about 2 hours on CPU</p></li>
+						</ul>
+
+						<table class="table" style="margin-top: 30px;">
+							<thead>
+								<tr>
+									<th>Model</th>
+									<th>1</th>
+									<th>2</th>
+									<th>3</th>
+									<th>4</th>
+									<th>5</th>
+									<th>6</th>
+									<th>7</th>
+									<th>8</th>
+									<th>9</th>
+									<th>10</th>
+									<th>11</th>
+									<th>12</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Latent</td>
+									<td>1D</td>
+									<td>1D</td>
+									<td>1D</td>
+									<td>1D</td>
+									<td>2D</td>
+									<td>2D</td>
+									<td>2D</td>
+									<td>2D</td>
+									<td>3D</td>
+									<td>3D</td>
+									<td>3D</td>
+									<td>3D</td>
+								</tr>
+								<tr>
+									<td>β</td>
+									<td>0.000</td>
+									<td>0.001</td>
+									<td>0.01</td>
+									<td>0.02</td>
+									<td>0.000</td>
+									<td>0.001</td>
+									<td>0.01</td>
+									<td>0.02</td>
+									<td>0.000</td>
+									<td>0.001</td>
+									<td>0.01</td>
+									<td>0.02</td>
+								</tr>
+							</tbody>
+						</table>
+
+
+					</section>
+				</section>
+
+				<!-- MATLAB Plugin details --->
+				<section>
+					<section data-background="#c8102f">
+						<h1 class="white"> Plugin </h1>
+					</section>
+					<section>
+						<h2>MATLAB Plugin</h2>
 						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
 					</section>
 					<section>
@@ -252,6 +335,7 @@
 					</section>
 				</section>
 
+				<!-- Future directions --->
 				<section>
 					<section data-background="#c8102f">
 						<h1 class="white"> Future directions </h1>
@@ -263,10 +347,9 @@
 							<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
 						</ul>
 					</section>
-		
 				</section>
 
-
+				<!-- Outro details slide --->
 				<section data-background="#c8102f">
 					<div class="end">
 						<img src="img/upf_wh.svg" style="width: 35%;">
