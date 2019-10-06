@@ -48,377 +48,163 @@
 						<img src="img/upf_red.svg" style="width: 30%;">
 					</div>
 					<div class="title">
-						<h1 style="margin: 0px 0 0 0;" class="title-text">flowEQ</h1>
-						<h4 style="margin: 0 0 0 0;">A new way to navigate equalization</h4>
+						<h1 style="margin: 0px 0 0 0;" class="title-text">flow<strong>EQ</strong></h1>
+						<h3 style="margin: 0 0 0 0;">A smarter equalizer using a β-VAE</h3>
 						<h6 style="margin: 5px 0 0 0;">October 17th, 2019 - 147th AES Convention - New York, New York, USA</h6>
 						<h3 style="margin: 25px 0 0 0;">Christian Steinmetz</h3>
 						<h5 style="margin: 0px 0 0 0;">Music Technology Group, Universitat Pompeu Fabra, Barcelona, Spain</h5>
 					</div>
 				</section>
 
-				<!-- Personal intro slide --->
+				<!-- Motivating example --->
 				<section>
-					<div style="text-align: center;">
-						<img src="img/headshot_bw_sm.jpg" style="width: 300px;">
-						<h3 style="margin: 0px 0 0 0;" ><strong> Christian Steinmetz </strong></h3>
-						<h5>MSc Student in the MTG at UPF</h5>
-						<h5 style="margin: 0px 0 0 0;"> <a href="mailto:christian.steinmetz@upf.edu">christianjames.steinmetz01@estudiant.upf.edu</a></h5>
-						<h5 style="margin: 0px 0 0 0;"> <a href="https://christiansteinmetz.com">www.christiansteinmetz.com</a></h5>						
-						<h5 style="margin: 0px 0 0 0;"> <a href="https://twitter.com/csteinmetz1">@csteinmetz1</a></h5>
+					<h2>Motivating example</h2>
+					<div class="fragment fade-in-then-semi-out">
+						<h3>What we recorded...</h3>
+						<audio controls>
+							<source src="../audio/pianoEQ_preEQ.mp3" type="audio/mp3">
+							Your browser does not support the audio element.
+						</audio>
 					</div>
+					<div style="margin: 25px;"></div>
+					<div class="fragment fade-in-then-semi-out">
+						<h3>What we want...</h3>
+						<audio controls>
+							<source src="../audio/pianoEQ_postEQ.mp3" type="audio/mp3">
+							Your browser does not support the audio element.
+						</audio>
+					</div>
+					<div style="margin: 25px;"></div>
+					<h2 class="fragment fade-in"> How do we set the EQ to get there? </h2>
 				</section>
-
-				<!-- What is flowEQ? --->
-				<section>					
-					<section data-background="#c8102f">
-						<h1 class="white"> What is <strong>flowEQ</strong>? </h1>
-					</section>
-					<section>
-						<img src="../img/traverse.gif" style="max-height: 90%; max-width: 90%;">
-						<h3>Using machine learning for simplified control of parametric EQ</h3>
-					</section>
-				</section>
-
-				<!-- Background on equalization --->
 				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Equalization </h1>
-					</section>
-					<section>
-						<img src="../img/gml.jpg" style="max-height: 50%; max-width: 90%;">		
-						<h3>Analog parametric equalizer</h3>	
-					</section>
-					<section>
-						<img src="../img/q6.png" style="max-height: 50%; max-width: 50%;">		
-						<h3>Digital parametric equalizer plugin</h3>	
-					</section>
-					<section>		
-						<table>
-							<tr >
-								<td style="border-bottom: none; vertical-align:middle;"><h3>Gain</h3></td>
-								<td style="border-bottom: none;"><img src="../img/gain.gif" style="max-height: 75%; max-width: 75%;"></td>
-							</tr>
-							<tr>
-								<td style="border-bottom: none; vertical-align:middle;"><h3>Frequency</h3></td>
-								<td style="border-bottom: none;"><img src="../img/freq.gif" style="max-height: 75%; max-width: 75%;"></td>
-							</tr>
-							<tr>
-								<td style="border-bottom: none; vertical-align:middle;"><h3>Q (bandwidth)</h3></td>
-								<td style="border-bottom: none;"><img src="../img/q.gif" style="max-height: 75%; max-width: 75%;"></td>
-							</tr>
-						</table>
-					</section>
-					<section>
-						<div class="fragment fade-in-then-semi-out">
-							<h3>What we recorded...</h3>
-							<audio controls>
-								<source src="../audio/pianoEQ_preEQ.mp3" type="audio/mp3">
-								Your browser does not support the audio element.
-							</audio>
-						</div>
-						<div style="margin: 25px;"></div>
-						<div class="fragment fade-in-then-semi-out">
-							<h3>What we want...</h3>
-							<audio controls>
-								<source src="../audio/pianoEQ_postEQ.mp3" type="audio/mp3">
-								Your browser does not support the audio element.
-							</audio>
-						</div>
-						<div style="margin: 25px;"></div>
-						<h2 class="fragment fade-in"> How do we set the EQ to get there? </h2>
-					</section>
-					<section>
-						<div>
-							<h3> The parameters to achieve this are non-obvious </h3>
-							<p>(except to the well trained audio engineer)</p>
-						</div>
-						<img src="../img/pianoEQ.png" style="max-height: 40%; max-width: 40%;">
-					</section>
+					<div>
+						<h3> The parameters to achieve this are non-obvious </h3>
+						<p class="fragment fade-in">(except to the well trained audio engineer)</p>
+					</div>
+					<img class="fragment fade-in" src="../img/pianoEQ.png" style="max-height: 40%; max-width: 40%;">
+				</section>
+
+				<!-- Dataset --->
+				<section>
+					<h2>Dataset</h2>
+					<img src="../img/dataset_tf.gif" style="max-height: 50%; max-width: 50%;">
+					<h5>~1700 examples</h4>			
+						
+					<h5 style="margin: 60px 0 5px 0px;"><strong>SAFE: A system for the extraction and retrieval of semantic audio descriptors</strong></h5>
+					<h6>Ryan Stables, Sean Enderby. Brecht De Man, Gyorgy Fazekas, and Joshua Reiss, 2014.</h6> 
 				</section>
 
 				<!-- VAE Theory --->
 				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Theory </h1>
-					</section>
-					<section>
-						<h2>Autoencoder</h2>
-						<img src="../img/autoencoder_vid_decoder.png" style="max-height: 60%; max-width: 60%;">
-						<div style="margin: 80px 0 0 0; float:left;">
-							<h4 class="fragment fade-in">Encoder</h4>
-							<p class="fragment fade-in">Input -> EQ parameters</p>
-						</div> 
-						<div style="margin: 80px 0 0 0; float:right;">
-							<h4 class="fragment fade-in">Decoder</h4>
-							<p class="fragment fade-in">Output -> EQ parameters</p>
-						</div> 
+					<h2>Variational autoencoder</h2>
 
-						<p class="fragment fade-in">Latent space</p>
-					</section>
-					<section>
-						<div class="container">
-							<div style="width:60%">
-								<img src="../img/decoder_nosample.png" style="max-height: 90%; max-width: 90%;">
-								<p class="fragment fade-in" >Select a point</p>
-							</div>
-							<div class="col">
-								<p class="fragment fade-in" style="margin: 200px 0 0 0;">Each point decodes to EQ config</p>
-								<img class="fragment fade-in" src="../img/eq_curve.png" style="max-height: 80%; max-width: 80%;">		
-							</div>
-						</div>		
-					</section>
-					<section>
-						<h2>Variational autoencoder</h2>
-						<div class="fragment fade-in">
-							<img src="../img/gauss.gif" style="max-height: 30%; max-width: 30%;">
-							<p>The encoder becomes probabilistic and generates μ and σ</p>
-						</div>
+					<img src="../img/ae.svg" style="max-height: 50%; max-width: 60%;">
+					
+					<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
+					<h6> Diederik P. Kingma and Max Welling, 2013.</h6>  
 
-						<ul style="margin-top: 40px;">
-							<li class="fragment fade-in"><p>centers latent codes around origin</p></li>
-							<li class="fragment fade-in"><p>similar samples placed together</p></li>
-							<li class="fragment fade-in"><p>dense population of latent space</p></li>
-						</ul>		
-
-						<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
-						<h6> Diederik P. Kingma and Max Welling, 2013.</h6>  
-
-					</section>
-					<section>
-						<h2>Disentanglement</h2>
-
-						<h4> Loss function</h4>
-						$$ \Large \mathcal{L}_{\beta-VAE}(\pmb{\theta},\pmb{\phi},\mathbf{x}^{(i)}) = - \mathbb{E}_{\mathbf{z} \sim q_{\theta}(\mathbf{z}|\mathbf{x}^{(i)})} [ {\log{p_\phi(\mathbf{x}^{(i)} | \mathbf{z})}} ] + \mathbf{\beta} \: D_{KL} (q_\theta(\mathbf{z} | \mathbf{x}^{(i)}) || p_\theta(\mathbf{z})) $$
-
-						<ul>
-							<li class="fragment fade-in"><p>The beta term weighs the KL loss against the reconstruction loss</p></li>
-							<li class="fragment fade-in"><p>Larger beta means greater disentanglement</p></li>
-						</ul>
-
-
-						<h5 style="margin: 80px 0 5px 0px;"><strong>β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework</strong></h5>
-						<h6>Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner, 2017.</h6> 
-
-					</section>
 				</section>
-
-				<!-- Model and training details --->
 				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Model </h1>
-					</section>
-					<section>
-						<h2>Model architecture</h2>	
-						<div style="margin: 20px 0px 0 80px; float:left;">
-							<img src="../img/net.svg" style="max-height: 100%; max-width: 100%;">
-							<p>VAE architecture</p>
-						</div> 
+					<h2>Training</h2>
 
-						<div style="margin: 20px 0 0 0; float:right;">
-							<h4>Purposefully simple design</h4>
-							<ul>
-								<li><p>Fast inference time for seamless real-time use</p></li>
-								<li><p>Straightforward matrix operations in MATLAB code</p></li>
-								<li><p>Low data dimensionality doesn't require large network</p></li>
-							</ul>
-						</div>
-					</section>
-					<section>
-						<h2>Size</h2>
-						<table class="large-table">
+					<table class="table" style="margin-top: 30px;">
+						<thead>
 							<tr>
-								<th>Latent</th>
-								<td>1</td>
-								<td>2</td>
-								<td>3</td>
+								<th>Model</th>
+								<th>1</th>
+								<th>2</th>
+								<th>3</th>
+								<th>4</th>
+								<th>5</th>
+								<th>6</th>
+								<th>7</th>
+								<th>8</th>
+								<th>9</th>
+								<th>10</th>
+								<th>11</th>
+								<th>12</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Latent</td>
+								<td>1D</td>
+								<td>1D</td>
+								<td>1D</td>
+								<td>1D</td>
+								<td>2D</td>
+								<td>2D</td>
+								<td>2D</td>
+								<td>2D</td>
+								<td>3D</td>
+								<td>3D</td>
+								<td>3D</td>
+								<td>3D</td>
 							</tr>
 							<tr>
-								<th>Parameters</th>
-								<td>31,759</td>
-								<td>34,833</td>
-								<td>37,707</td>
+								<td>β</td>
+								<td>0.000</td>
+								<td>0.001</td>
+								<td>0.01</td>
+								<td>0.02</td>
+								<td>0.000</td>
+								<td>0.001</td>
+								<td>0.01</td>
+								<td>0.02</td>
+								<td>0.000</td>
+								<td>0.001</td>
+								<td>0.01</td>
+								<td>0.02</td>
 							</tr>
-						</table>
+						</tbody>
+					</table>
 
-						<p>Forward pass through decoder is about <strong>300 μs</strong> seconds on CPU</p>
-
-					</section>
-					<section>
-						<h2>Dataset</h2>
-						<img src="../img/dataset_tf.gif" style="max-height: 50%; max-width: 50%;">
-						<h4>SAFE-DB dataset for five-band parametric EQ</h3>	
-						<h5>~1700 examples</h4>			
-							
-						<h5 style="margin: 60px 0 5px 0px;"><strong>SAFE: A system for the extraction and retrieval of semantic audio descriptors</strong></h5>
-						<h6>Ryan Stables, Sean Enderby. Brecht De Man, Gyorgy Fazekas, and Joshua Reiss, 2014.</h6> 
-					</section>
-					<section>
-						<h2>Training</h2>
-
-						<ul>
-							<li><p>Twelve different models with different latent sizes and values of β</p></li>
-							<li><p>We use <strong>Keras</strong> and save the model weights for each model as HDF5</p></li>
-							<li><p>Adam optimizer with learning rate of 0.001</p></li>
-							<li><p>Each model is trained for 200 epochs</p></li>
-							<li><p>Entire training process takes about 2 hours on CPU</p></li>
-						</ul>
-
-						<table class="table" style="margin-top: 30px;">
-							<thead>
-								<tr>
-									<th>Model</th>
-									<th>1</th>
-									<th>2</th>
-									<th>3</th>
-									<th>4</th>
-									<th>5</th>
-									<th>6</th>
-									<th>7</th>
-									<th>8</th>
-									<th>9</th>
-									<th>10</th>
-									<th>11</th>
-									<th>12</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>Latent</td>
-									<td>1D</td>
-									<td>1D</td>
-									<td>1D</td>
-									<td>1D</td>
-									<td>2D</td>
-									<td>2D</td>
-									<td>2D</td>
-									<td>2D</td>
-									<td>3D</td>
-									<td>3D</td>
-									<td>3D</td>
-									<td>3D</td>
-								</tr>
-								<tr>
-									<td>β</td>
-									<td>0.000</td>
-									<td>0.001</td>
-									<td>0.01</td>
-									<td>0.02</td>
-									<td>0.000</td>
-									<td>0.001</td>
-									<td>0.01</td>
-									<td>0.02</td>
-									<td>0.000</td>
-									<td>0.001</td>
-									<td>0.01</td>
-									<td>0.02</td>
-								</tr>
-							</tbody>
-						</table>
-					</section>
-
-					<section>
-						<h3>Latent space disentanglement</h3>
-						<div class="container">
-							<div class="col" style="max-height: 50%; max-width: 50%;">
-								<img src="../img/2d_beta_0.000_200epochs_2.gif">
-								<p>β = 0.0</p>
-							</div>
-							<div class="col" style="max-height: 50%; max-width: 50%;">
-								<img src="../img/2d_beta_0.020_200epochs_2.gif">
-								<p>β = 0.02</p>
-							</div>
-						</div>
-						<div>
-							<h3 style="margin: 0 0 0 0; color: #444e86;"><strong>Bright</strong></h3>
-							<h3 style="margin: 0 0 0 0; color: #ff6e54;"><strong>Warm</strong></h3>
-						</div>
-					</section>
+					<h5 style="margin: 80px 0 5px 0px;"><strong>β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework</strong></h5>
+					<h6>Irina Higgins, Loic Matthey, Arka Pal, Christopher Burgess, Xavier Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner, 2017.</h6>
 				</section>
 
 				<!-- MATLAB Plugin details --->
-				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Plugin </h1>
-					</section>
-					<section>
-						<h2>Overview</h2>
-						<ul>
-							<li class="fragment fade-in">We use the MATLAB Audio Toolbox to deploy the plugin</li>
-							<li class="fragment fade-in">3 main modes of operation: Traverse, Semantic, and Manual</li>
-							<li class="fragment fade-in">User can select among 12 models (varying Latent and β)</li>
-						</ul>
-					</section>
-					<section>
-						<h2>Machine learning models in Audio Toolbox</h2>
-						<ol>
-							<li class="fragment fade-in">Save model weights from training in Keras as HDF5 files</li>
-							<li class="fragment fade-in">We use a custom MATLAB function to convert these to MAT files</li>
-							<li class="fragment fade-in">Implement the model architecture in pure MATLAB code</li>
-							<li class="fragment fade-in">UI controls swap the weights of the network used for inference</li>
-							<li class="fragment fade-in">Connect output (EQ parameters) to 5-band parametric EQ implemented in MATLAB</li>
-						</ol>
-					</section>
-					<section data-transition="slide-in fade-out">
-						<h2>Full plugin interface</h2>
-						<img src="../img/full_visual.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section  data-transition="fade-in fade-out">
-						<h2>Latent space traversal</h2>
-						<img src="../img/traverse_focus.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section  data-transition="fade-in fade-out">
-						<h2>Semantic controls</h2>
-						<img src="../img/semantic_focus.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section  data-transition="fade-in fade-out">
-						<h2>Fully manual controls</h2>
-						<img src="../img/manual_focus.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section  data-transition="fade-in fade-out">
-						<h2>Model control</h2>
-						<img src="../img/control_focus.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section  data-transition="fade-in fade-out">
-						<h2>Automatic gain compensation</h2>
-						<img src="../img/gain_focus.png" style="max-height: 70%; max-width: 80%;">						
-					</section>
-					<section>
-						<h2>flowEQ-lite</h2>
-						<p>Features an extremely simple interface</p>
-						<img src="../img/lite_plugin.png" style="max-height: 70%; max-width: 70%;">						
-					</section>
-					<section>
-						<h2>Anatomy of the plugin</h2>
-						<img src="../img/pluginblockdiagram.svg" style="max-height: 70%; max-width: 80%;">						
-					</section>
-				</section>
 
-				<!-- Demo --->
-				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Demo </h1>
-					</section>
-					<section>
-						<div class="videoWrapper">
-							<iframe width="560" height="315" src="https://www.youtube.com/embed/ws022IybkUk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-						</div>		
-					</section>
+				<section data-transition="slide-in fade-out">
+					<h2>Full plugin interface</h2>
+					<img src="../img/full_visual.png" style="max-height: 70%; max-width: 80%;">						
 				</section>
-
+				<section  data-transition="fade-in fade-out">
+					<h2>Latent space traversal</h2>
+					<img src="../img/traverse_focus.png" style="max-height: 70%; max-width: 80%;">						
+				</section>
+				<section  data-transition="fade-in fade-out">
+					<h2>Semantic controls</h2>
+					<img src="../img/semantic_focus.png" style="max-height: 70%; max-width: 80%;">						
+				</section>
+				<section  data-transition="fade-in fade-out">
+					<h2>Fully manual controls</h2>
+					<img src="../img/manual_focus.png" style="max-height: 70%; max-width: 80%;">						
+				</section>
+				<section  data-transition="fade-in fade-out">
+					<h2>Model control</h2>
+					<img src="../img/control_focus.png" style="max-height: 70%; max-width: 80%;">						
+				</section>
+				<section  data-transition="fade-in fade-out">
+					<h2>Automatic gain compensation</h2>
+					<img src="../img/gain_focus.png" style="max-height: 70%; max-width: 80%;">						
+				</section>
+				<section>
+					<h2>flowEQ-lite</h2>
+					<p>Features an extremely simple interface</p>
+					<img src="../img/lite_plugin.png" style="max-height: 70%; max-width: 70%;">						
+				</section>
 
 				<!-- Future directions --->
 				<section>
-					<section data-background="#c8102f">
-						<h1 class="white"> Future directions </h1>
-					</section>
-					<section>
-						<ul>
-							<li class="fragment fade-in"><h3>Adaptive latent space conditioned on streaming audio content</h3></li>
-							<li class="fragment fade-in"><h3>Collect additional data to expand the model's knowledge</h3></li>	
-							<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
-							<li class="fragment fade-in"><h3>Extend this to an entire mixing console (...but we need the data...)</h3></li>	
-						</ul>
-					</section>
+					<h1> Future directions</h1>
+					<ul>
+						<li class="fragment fade-in"><h3>Adaptive latent space conditioned on streaming audio content</h3></li>
+						<li class="fragment fade-in"><h3>Collect additional data to expand the model's knowledge</h3></li>	
+						<li class="fragment fade-in"><h3>Employ other generative modeling techniques (i.e. Normalizing flows)</h3></li>	
+						<li class="fragment fade-in"><h3>Extend this to an entire mixing console (...but we need the data...)</h3></li>	
+					</ul>
 				</section>
 
 				<!-- Outro details slide --->
