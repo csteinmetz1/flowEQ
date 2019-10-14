@@ -58,31 +58,33 @@
 
 				<!-- Motivating example --->
 				<section>
-					<h2>Motivating example</h2>
-					<div class="fragment fade-in-then-semi-out">
-						<h3>What we recorded...</h3>
-						<audio controls>
-							<source src="../audio/pianoEQ_preEQ.mp3" type="audio/mp3">
-							Your browser does not support the audio element.
-						</audio>
-					</div>
-					<div style="margin: 25px;"></div>
-					<div class="fragment fade-in-then-semi-out">
-						<h3>What we want...</h3>
-						<audio controls>
-							<source src="../audio/pianoEQ_postEQ.mp3" type="audio/mp3">
-							Your browser does not support the audio element.
-						</audio>
-					</div>
-					<div style="margin: 25px;"></div>
-					<h2 class="fragment fade-in"> How do we set the EQ to get there? </h2>
+					<h1>Motivating example</h1>
+					<h3 class="fragment fade-in"> We have a recording but we want to change how it sounds.</h3>					
+					<h3 class="fragment fade-in"> In our head we know how we would like it to sound...</h3>			
+					<h3 class="fragment fade-in"> but how do we set the EQ to get there? </h3>
 				</section>
 				<section>
-					<div>
-						<h3> The parameters to achieve this are non-obvious </h3>
-						<p class="fragment fade-in">(except to the well trained audio engineer)</p>
-					</div>
-					<img class="fragment fade-in" src="../img/pianoEQ.png" style="max-height: 40%; max-width: 40%;">
+					<h3> The parameters to achieve this are non-obvious </h3>
+					<img src="../img/pianoEQ.png" style="max-height: 40%; max-width: 40%;">
+					<p class="fragment fade-in">(except to the well trained audio engineer)</p>
+				</section>
+
+
+				<!-- What is flowEQ? --->
+				<section>					
+					<img src="../img/traverse.gif" style="max-height: 90%; max-width: 90%;">
+					<h3 class="fragment fade-in">Simplified control of parametric EQ...</h3>
+					<h3 class="fragment fade-in">with a disentangled variational autoencoder (β-VAE)</h3>
+				</section>
+
+				<!-- VAE Theory --->
+				<section>
+					<h2>Variational autoencoder</h2>
+
+					<img src="../img/ae.svg" style="max-height: 50%; max-width: 60%;">
+					
+					<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
+					<h6> Diederik P. Kingma and Max Welling, 2013.</h6>  
 				</section>
 
 				<!-- Dataset --->
@@ -95,16 +97,7 @@
 					<h6>Ryan Stables, Sean Enderby. Brecht De Man, Gyorgy Fazekas, and Joshua Reiss, 2014.</h6> 
 				</section>
 
-				<!-- VAE Theory --->
-				<section>
-					<h2>Variational autoencoder</h2>
-
-					<img src="../img/ae.svg" style="max-height: 50%; max-width: 60%;">
-					
-					<h5 style="margin: 20px 0 5px 0px;"><strong>Auto-Encoding Variational Bayes</strong></h5>
-					<h6> Diederik P. Kingma and Max Welling, 2013.</h6>  
-
-				</section>
+				<!-- Training -->
 				<section>
 					<h2>Training</h2>
 
