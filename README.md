@@ -11,7 +11,7 @@ By using the trained decoder network, the user can more quickly search through t
 This methodology promotes using one's ears to determine the proper EQ settings instead of looking at transfer functions or specific frequency controls.
 Two main modes of operation are provided (**Traverse** and **Semantic**), which allow users to sample from the latent space of the 12 train models.
 
-Download the VST/AU plugin from [flowEQ.ml](https://flowEQ.ml)
+Download the VST/AU plugin from [https://csteinmetz1.github.io/flowEQ/](https://csteinmetz1.github.io/flowEQ/)
 
 ### Applications
 
