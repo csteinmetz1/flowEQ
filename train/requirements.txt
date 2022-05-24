@@ -79,7 +79,7 @@ tabulate==0.8.3
 talos==0.4.9
 tb-nightly==1.14.0a20190603
 tensorboard==1.13.1
-tensorflow==2.0.0b1
+tensorflow==2.6.4
 tensorflow-estimator==1.13.0
 termcolor==1.1.0
 terminado==0.8.2
