@@ -10,6 +10,9 @@ from packaging import version
 
 import numpy as np
 import pandas as pd
+# the models are written for Keras 2, use the tf-keras package instead of Keras 3
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import tensorflow as tf
 from tensorflow.keras import layers
 import talos as ta
@@ -32,9 +35,9 @@ eq_params = pd.read_csv("../data/safe/normalized_eq_params.csv", sep=",", index_
 eq_df = eq_params[eq_params['descriptor'].isin(['bright', 'warm'])].reset_index()
 
 # make train / test split
-x_train = eq_df.values[:800,2:]
+x_train = eq_df.values[:800,2:].astype('float32')
 y_train = eq_df.values[:800,1]
-x_test  = eq_df.values[800:,2:]
+x_test  = eq_df.values[800:,2:].astype('float32')
 y_test  = eq_df.values[800:,1]
 
 # inspect training and testing data

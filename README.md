@@ -56,7 +56,7 @@ Read on if you are interested in running the plugin as MATLAB code, compiling it
 
 ### MATLAB
 
-To run the plugin as MATLAB code or compile the plugin for your platform you will need to have MATLAB 2019b along with the [Audio Toolbox](https://www.mathworks.com/products/audio.html).
+To run the plugin as MATLAB code or compile the plugin for your platform you will need to have MATLAB 2019b or newer along with the [Audio Toolbox](https://www.mathworks.com/products/audio.html).
 You can use an older version of MATLAB, but this will not include support for the customized GUI. 
 
 Start by cloning this repository.
@@ -99,63 +99,91 @@ Note that you CANNOT use the [mingw-w64 compiler](http://mingw-w64.org/doku.php)
 
 ### Training
 
-There are a number of steps to train the models.
-A shell script, `init.sh`, located in the `train/` directory will carry out of all this setup and training for you (macOS or Linux).
-Optionally, you can follow along with the steps outlined below.
+There are a number of steps to train the models, all run from the `train/` directory.
 
-To train the models, you will first need to get the [SAFE-DB dataset](http://www.semanticaudio.co.uk/datasets/data/) (only about 4 MB).
-In this case, we only need the User Data (`SAFEEqualiserUserData.csv`) from the parametric equalizer. 
-Place this csv file in a new directory at the top level of project called `data/safe`. 
+Training uses the [SAFE-DB dataset](http://www.semanticaudio.co.uk/datasets/data/).
+In this case, we only need the User Data (`SAFEEqualiserUserData.csv`) from the parametric equalizer.
+Place this csv file in a new directory at the top level of project called `data/safe`.
+The original site is no longer available, but a copy of the file is kept in [rikkus/flowEQ](https://github.com/rikkus/flowEQ/blob/master/data/safe/SAFEEqualiserUserData.csv).
 
 Before using any of the Python scripts you need to install the dependencies.
+The scripts need Python 3.13 (the pinned versions in `requirements.txt` were resolved and tested with it).
 I recommend using a [virtual environment](https://docs.python-guide.org/dev/virtualenvs/) or similar.
 
 ```
+cd train
+python3.13 -m venv .venv
+source .venv/bin/activate        # on Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+The dependencies are also declared in `pyproject.toml` (with a lockfile, `uv.lock`), so if you use [uv](https://docs.astral.sh/uv/), `uv sync` sets up the same environment and `uv run python <script>` runs each script in it.
+
+The models are written for Keras 2, so the scripts use the `tf-keras` package rather than the Keras 3 that ships with recent TensorFlow.
+They set `TF_USE_LEGACY_KERAS=1` themselves, so there is nothing extra to configure.
+
 Next we need to preprocess the dataset using `train/preprocess.py`. 
+
+```
+python preprocess.py
+```
 
 This script performs a number of important tasks:
 
 - Add proper names to each column of the dataframe
-- Create transfer function plots for each sample in the dataset
+- Create transfer function plots for each sample in the dataset (in `data/safe/plots/`)
 - Normalize each parameter value to lie between 0 and 1
-- Create a new csv file with the descriptors ranked by their frequency
+- Create a new csv file with the descriptors ranked by their frequency (`descriptors.csv`)
 - Sort the three middle bands by their center frequencies (in ascending order)
 - Shuffle the samples before training 
 - Save all the modified data to a new file (`normalized_eq_params.csv`)
 
+The shuffle is random, so each run produces a slightly different training set.
+
 We are now ready to train some models. 💫
 
-The main training script, `trainall.py` will load the data and then train 12 separate models.
+The main training script, `trainfull.py` will load the data and then train 12 separate models.
 Each model has different hyperparameter settings and the user will be able to select these different models from within the plugin.
 You can read more about this in the [Theory](#theory) section.
+
+```
+python trainfull.py
+```
 
 | Model  | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | 10    | 11    | 12    |
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 | Latent | 1D    | 1D    | 1D    | 1D    | 2D    | 2D    | 2D    | 2D    | 3D    | 3D    | 3D    | 3D    |
 | β      | 0.000 | 0.001 | 0.01  | 0.02  | 0.000 | 0.001 | 0.01  | 0.02  | 0.000 | 0.001 | 0.01  | 0.02  | 
 
-After training has finished (this will probably take about an hour or so running on CPU), a new directory will be created in `models/`.
+After training has finished (this takes a few minutes on a recent CPU), a new directory will be created in `models/`.
 This contains saved model architectures and weights for each of the 12 models, with separate models separated as the autoencoder, decoder, and encoder.
 Another directory contains plots of the data manifold as well as a scatter plot of the dataset projected into each latent space.
 
-With all of the models trained, the final step is to generate latent codes (embeddings) of the *warm* and *bright* descriptors for each model.
-Simply run the `embeddings.py` script with the path to the models directory generated during training.
+With all of the models trained, the next step is to generate latent codes (embeddings) of the *warm* and *bright* descriptors for each model.
+Simply run the `embeddings.py` script with the path to the models directory generated during training (your directory will contain a different date code).
 
 ```
 python embeddings.py ../models/20190714-153626/
 ```
 
-This will create a new file, `assets/codes.mat`, that contains an array of all the embeddings to be loaded by the plugin. 
-We are now ready to build the plugin. 
-The build script will complete one final step, which is to convert the hdf5 models generated by the training script using Keras to mat files that can be loaded by the plugin.
-Just pass the directory of the models as below (Your directory will contain a different date code).
+This will create a new file, `plugin/assets/codes.mat`, that contains an array of all the embeddings to be loaded by the plugin. 
+Plots of each embedding are saved in `train/plots/embeddings/`.
+
+The final step is to convert the hdf5 models generated by the training script using Keras to mat files that can be loaded by the plugin.
+This can be done either in Python, from the `train/` directory:
 
 ```
->> build('../models/20190714-153626')
+python convert_models.py ../models/20190714-153626/
 ```
+
+or in MATLAB, from the `plugin/` directory:
+
+```MATLAB
+>> ConvertModels('../models/20190714-153626')
+```
+
+Both write one `.mat` file per model into `plugin/assets/`.
+We are now ready to build the plugin, by running `buildPlugin` in MATLAB as described [above](#matlab).
 
 We made it 🎉 You now have a VST or AU plugin ready to be loaded in your DAW. 
 

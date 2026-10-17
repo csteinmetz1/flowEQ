@@ -1,4 +1,9 @@
+import os
 import sys
+
+# the models below are written for Keras 2, use the tf-keras package instead of Keras 3
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import tensorflow as tf
 from tensorflow.keras import layers, losses, optimizers
 from tensorflow.keras import backend as K
@@ -150,16 +155,11 @@ def build_single_layer_variational_autoencoder(latent_dim, input_shape, beta):
     decoder.summary()
 
     # stick these together to make autoencoder
-    outputs = decoder(encoder(inputs)[2])
+    mu, log_sigma, z = encoder(inputs)
+    outputs = VAELoss(beta)([inputs, decoder(z), mu, log_sigma])
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    # construct loss functions
-    def vae_loss(y_true, y_pred):
-        reconstruciton_loss = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = (0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1))
-        return reconstruciton_loss + (beta * kl_loss)
-
-    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001))
     autoencoder.summary()
 
     return autoencoder, encoder, decoder
@@ -204,19 +204,36 @@ def build_multiple_layer_variational_autoencoder(latent_dim, input_shape, beta):
     decoder.summary()
 
     # stick these together to make autoencoder
-    outputs = decoder(encoder(inputs)[2])
+    mu, log_sigma, z = encoder(inputs)
+    outputs = VAELoss(beta)([inputs, decoder(z), mu, log_sigma])
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    # construct loss function
-    def vae_loss(y_true, y_pred):
-        reconstruciton_loss = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = (0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1))
-        return reconstruciton_loss + (beta * kl_loss)
-
-    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001))
     autoencoder.summary()
 
     return autoencoder, encoder, decoder
+
+class VAELoss(layers.Layer):
+    """ Add the VAE loss (reconstruction + beta weighted KL divergence) to the model.
+
+    Passes the reconstruction through unchanged. Beta may be a float or a
+    (non-trainable) variable, so it can be annealed during training.
+    """
+    def __init__(self, beta, **kwargs):
+        super().__init__(**kwargs)
+        self.beta = beta
+
+    def call(self, args):
+        x, x_hat, mu, log_sigma = args
+        reconstruction_loss = losses.mean_absolute_error(x, x_hat)
+        kl_loss = 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1)
+        self.add_loss(K.mean(reconstruction_loss + (self.beta * kl_loss)))
+        return x_hat
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({'beta': float(K.get_value(self.beta))})
+        return config
 
 def sample(args):
     """ Perform sampling during training with reparameterization trick 
@@ -257,17 +274,11 @@ def tune_single_layer_variational_autoencoder(x_train, y_train, x_val , y_val, p
     decoder = tf.keras.Model(latent_inputs, outputs, name='decoder')
 
     # stick these together to make autoencoder
-    outputs = decoder(encoder(inputs)[2])
+    mu, log_sigma, z = encoder(inputs)
+    outputs = VAELoss(beta)([inputs, decoder(z), mu, log_sigma])
     autoencoder = tf.keras.Model(inputs, outputs, name='autoencoder')
 
-    # construct loss function
-    def vae_loss(y_true, y_pred):
-        recon = losses.mean_absolute_error(inputs, outputs)
-        kl_loss = beta * 0.5 * K.sum(K.exp(log_sigma) + K.square(mu) - 1. - log_sigma, axis=1) 
-        #kl_loss = K.print_tensor(kl_loss[0])
-        return K.mean(recon + kl_loss)
-
-    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=vae_loss)
+    autoencoder.compile(optimizer=tf.keras.optimizers.Adam(0.001))
 
     history = autoencoder.fit(x_train, x_train, 
                     shuffle=True,
