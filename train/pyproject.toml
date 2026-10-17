@@ -1,0 +1,20 @@
+[project]
+name = "train"
+version = "0.1.0"
+description = "Train the flowEQ variational autoencoders on the SAFE-DB equalizer data"
+authors = [
+    { name = "Rik Hemsley", email = "rik@hemsley.cc" }
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "h5py>=3.14.0",
+    "matplotlib>=3.11.2",
+    "nltk>=3.10.3",
+    "numpy>=2.5.4",
+    "packaging>=26.3",
+    "pandas>=3.0.6",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "tensorflow>=2.21.0",
+    "tf-keras>=2.21.0",
+]
