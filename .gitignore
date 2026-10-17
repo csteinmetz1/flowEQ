@@ -1,13 +1,18 @@
 # Visual Studo Code
 .vscode
 
-# Datasets and models (only the SAFE equalizer user data is tracked)
+# Datasets and models
+# Tracked: the SAFE equalizer user data, the preprocessed data and the
+# models it trained, so the plugin can be built without retraining
 data/*
 !data/safe/
 data/safe/*
 !data/safe/SAFEEqualiserUserData.csv
+!data/safe/normalized_eq_params.csv
+!data/safe/descriptors.csv
 demo/
-models/
+models/*
+!models/20261017-090756/
 train/logs/
 train/plots/
 research/papers/*.pdf
@@ -21,6 +26,7 @@ env/
 # MATLAB
 audioplugin/
 assets/
+!plugin/assets/
 builds/
 testbench*.m
 *.m~

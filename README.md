@@ -65,10 +65,14 @@ Start by cloning this repository.
 git clone https://github.com/csteinmetz1/flowEQ.git
 ```
 
-Once you have cloned the repository, you will first need to either download the trained models or train them yourself.
-The easiest method is to download all of the assets needed to compile the plugin directly (pre-trained, converted models and latent codes). 
-Simply download the latest archive from [here](https://drive.google.com/drive/folders/1xelm4m3y0iqAs_GObi_Leq7Q-rVdlP-d?usp=sharing).
-Extract this archive into a new directory `plugin/assets/`.
+The repository includes a set of pre-trained models, so you can build the plugin straight away without installing Python or training anything:
+
+- `plugin/assets/`: the converted models and latent codes the plugin loads (everything needed to compile it)
+- `models/20261017-090756/`: the trained Keras models these were converted from, with plots of each latent space
+- `data/safe/normalized_eq_params.csv` and `descriptors.csv`: the preprocessed data these models were trained on
+
+If you would rather train the models yourself, see the [Training](#training) steps below; they will overwrite the files in `plugin/assets/`.
+(The original pre-trained assets are also still available as an archive [here](https://drive.google.com/drive/folders/1xelm4m3y0iqAs_GObi_Leq7Q-rVdlP-d?usp=sharing).)
 
 To compile the plugin, simply open MATLAB and navigate to the `plugin/` directory. 
 Run the `buildPlugin.m` function from the Command Window and the process will start.
