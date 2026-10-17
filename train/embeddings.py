@@ -13,6 +13,9 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 import scipy.io as sio
+# the models are written for Keras 2, use the tf-keras package instead of Keras 3
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import model_from_json
@@ -45,7 +48,7 @@ def generate(data, descriptors, dim, beta, encoder, decoder, classifier=True, vi
         visualize	(bool)		: Create scatter plots of data and generated embeddings
     """
     # generate embeddings for data points
-    x = np.array(data.values[:,1:])
+    x = data.values[:,1:].astype('float32')
     a = encoder.predict(x, batch_size=8)
     z_mean, _, _ = encoder.predict(x, batch_size=8)
 
@@ -138,9 +141,16 @@ if __name__ == '__main__':
     descriptors = count.loc[0:1, 'descriptor'].tolist()
     eq_df = eq_params[eq_params['descriptor'].isin(descriptors)]
 
+    # the encoders contain a Lambda layer (sampling), which tf-keras won't load
+    # from JSON by default; allow it, these are models we trained ourselves
+    tf.keras.__internal__.enable_unsafe_deserialization()
+
     # get models
     encoder_models = glob.glob(os.path.join(args.modeldir, 'encoders', "*.h5"))
     decoder_models = glob.glob(os.path.join(args.modeldir, 'decoders', "*.h5"))
+
+    # directory for plots of the generated embeddings
+    os.makedirs(os.path.join("plots", "embeddings"), exist_ok=True)
 
     # codes dictionary
     codes = np.empty([3,4,6,3])
