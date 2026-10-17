@@ -52,6 +52,8 @@ def sort_params(x):
         y (ndarray) : 1x13 vector of sorted equalizer parameters.
 
     """
+    index = x.index if isinstance(x, pd.Series) else None
+    x = np.asarray(x, dtype=float)
     y = x.copy()
 
     # sort the frequencies 
@@ -78,7 +80,7 @@ def sort_params(x):
         elif sorted_freqs_idx[2] == 0:
             y[8:11] = x[2:5]
 
-    return y
+    return pd.Series(y, index=index) if index is not None else y
 
 def scale_gains(x):
     """ (NOT IMPLEMENTED) 
@@ -255,6 +257,8 @@ def params2sos(x, fs):
          [b4_0, b4_1, b4_2, a4_0, a4_1, a4_2],  # third band coefficients
          [b5_0, b5_1, b5_2, a5_0, a5_1, a5_2]]  # highshelf coefficients
     """
+    x = np.asarray(x, dtype=float)
+
     # generate filter coefficients from eq params
     b1, a1 = make_lowshelf(x[0],  x[1],  0.71,  fs=fs)
     b2, a2 = make_peaking (x[2],  x[3],  x[4],  fs=fs)

@@ -10,6 +10,9 @@ from packaging import version
 
 import numpy as np
 import pandas as pd
+# the models are written for Keras 2, use the tf-keras package instead of Keras 3
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import tensorflow as tf
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
@@ -31,9 +34,9 @@ eq_df = eq_params[eq_params['descriptor'].isin(top_descriptors)]
 
 # make train / test split
 train_set = 1000
-x_train = eq_df.values[:train_set,1:]
+x_train = eq_df.values[:train_set,1:].astype('float32')
 y_train = eq_df.values[:train_set,1]
-x_test  = eq_df.values[train_set:,1:]
+x_test  = eq_df.values[train_set:,1:].astype('float32')
 y_test  = eq_df.values[train_set:,1]
 
 # inspect training and testing data
@@ -43,13 +46,14 @@ print("Testing set    : ", x_test.shape)
 print("Testing labels : ", y_test.shape)
 
 # KL annealing (β) setup
-beta = K.variable(0.0)
+beta = tf.Variable(0.0, trainable=False)
 beta_max = 0.01
 klstart = 50
 annealtime = 5000
 
 class kl_annealing_callback(tf.keras.callbacks.Callback):
     def __init__(self, beta):
+        super().__init__()
         self.beta = beta
 
     def on_epoch_end(self, epoch, logs={}):

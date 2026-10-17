@@ -1,8 +1,11 @@
 # Visual Studo Code
 .vscode
 
-# Datasets and models
-data/
+# Datasets and models (only the SAFE equalizer user data is tracked)
+data/*
+!data/safe/
+data/safe/*
+!data/safe/SAFEEqualiserUserData.csv
 demo/
 models/
 train/logs/
